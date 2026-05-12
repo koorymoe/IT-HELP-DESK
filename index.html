@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>نظام بلاغات IT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* ─── VARIABLES ─── */
+:root{
+  --bg:#f1f5f9;--bg2:#fff;--bg3:#f8fafc;
+  --sidebar:#1e1b4b;--sidebar2:#312e81;
+  --primary:#6366f1;--primary2:#8b5cf6;
+  --success:#10b981;--warn:#f59e0b;--danger:#ef4444;--info:#0ea5e9;
+  --text:#1e293b;--text2:#64748b;--text3:#94a3b8;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --sl:rgba(255,255,255,.5);--sw:rgba(255,255,255,.9);
+  --radius:12px;--shadow:0 2px 12px rgba(0,0,0,.08);
+  --sidebar-w:232px;--sidebar-ic:66px;
+  --transition:.25s cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+a{text-decoration:none;color:inherit;}
+button{font-family:'Cairo',sans-serif;cursor:pointer;border:none;outline:none;}
+input,select,textarea{font-family:'Cairo',sans-serif;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ─── LOGIN ─── */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+.login-box{background:var(--bg2);border-radius:20px;padding:40px 44px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(99,102,241,.15);}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-ic{width:64px;height:64px;background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px;color:#fff;}
+.login-logo h1{font-size:20px;font-weight:800;color:var(--text);}
+.login-logo p{font-size:13px;color:var(--text2);}
+.lbl{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block;}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;transition:border-color .2s;outline:none;background:var(--bg3);color:var(--text);}
+.inp:focus{border-color:var(--primary);}
+.form-group{margin-bottom:18px;}
+.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-radius:10px;font-size:15px;font-weight:700;margin-top:4px;transition:.2s;}
+.btn-login:hover{opacity:.9;}
+.login-err{color:var(--danger);font-size:13px;text-align:center;margin-top:10px;min-height:20px;}
+
+/* ─── APP LAYOUT ─── */
+#appPage{display:none;}
+#appPage.active{display:flex;min-height:100vh;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  width:var(--sidebar-w);min-height:100vh;
+  background:linear-gradient(180deg,var(--sidebar) 0%,#2d2867 100%);
+  display:flex;flex-direction:column;flex-shrink:0;
+  position:fixed;right:0;top:0;bottom:0;z-index:100;
+  transition:width var(--transition);overflow:hidden;
+}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-logo-ic{width:38px;height:38px;background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0;}
+.sb-logo-tx{font-size:15px;font-weight:800;color:#fff;white-space:nowrap;}
+.sb-logo-sb{font-size:11px;color:var(--sl);white-space:nowrap;}
+.sb-toggle-btn{display:none;background:none;color:rgba(255,255,255,.6);font-size:17px;padding:5px 7px;border-radius:7px;margin-right:auto;}
+.sb-toggle-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
+.sb-user{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-ua{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.sb-un{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-ur{font-size:11px;color:var(--sl);white-space:nowrap;}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.sb-sec{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);padding:10px 10px 4px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
+.sb-i{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;color:rgba(255,255,255,.65);cursor:pointer;transition:.15s;white-space:nowrap;position:relative;}
+.sb-i:hover{background:rgba(255,255,255,.08);color:#fff;}
+.sb-i.active{background:linear-gradient(135deg,rgba(99,102,241,.35),rgba(139,92,246,.25));color:#fff;}
+.sb-i.active::before{content:'';position:absolute;right:-8px;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--primary);border-radius:2px;}
+.sb-i .ic{width:20px;text-align:center;font-size:15px;flex-shrink:0;}
+.sb-i span:not(.ic){font-size:13px;font-weight:600;}
+.nb{background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:auto;flex-shrink:0;}
+.sb-foot{padding:12px;border-top:1px solid rgba(255,255,255,.07);}
+.sb-out{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:rgba(255,255,255,.55);cursor:pointer;transition:.15s;}
+.sb-out:hover{background:rgba(239,68,68,.15);color:#fca5a5;}
+
+/* ─── MAIN AREA ─── */
+.main-area{flex:1;margin-right:var(--sidebar-w);display:flex;flex-direction:column;min-height:100vh;transition:margin var(--transition);}
+
+/* ─── TOPBAR ─── */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.tb-l{display:flex;align-items:center;gap:12px;}
+.tb-title{font-size:17px;font-weight:700;}
+.tb-r{display:flex;align-items:center;gap:8px;}
+.tb-icon-btn{width:36px;height:36px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:14px;cursor:pointer;border:1px solid var(--border);transition:.15s;position:relative;}
+.tb-icon-btn:hover{background:var(--border);color:var(--text);}
+.snd-btn{width:34px;height:34px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:13px;cursor:pointer;border:1px solid var(--border);transition:.15s;}
+.snd-btn:hover{background:var(--border);}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--bg2);}
+
+/* ─── CONTENT ─── */
+.content{padding:24px;flex:1;}
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.page-hdr h2{font-size:20px;font-weight:800;}
+
+/* ─── STAT GRID ─── */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--bg2);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;overflow:hidden;position:relative;}
+.stat-card::after{content:'';position:absolute;left:-12px;top:-12px;width:80px;height:80px;border-radius:50%;opacity:.07;}
+.sc-ic{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;}
+.sc-v{font-size:28px;font-weight:800;line-height:1.1;}
+.sc-l{font-size:12px;color:var(--text2);margin-top:3px;}
+.sc-blue{background:linear-gradient(135deg,#3b82f6,#60a5fa);}
+.sc-grn{background:linear-gradient(135deg,#10b981,#34d399);}
+.sc-ylw{background:linear-gradient(135deg,#f59e0b,#fbbf24);}
+.sc-red{background:linear-gradient(135deg,#ef4444,#f87171);}
+
+/* ─── TABLES ─── */
+.table-wrap{background:var(--bg2);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.table-top{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.table-top h3{font-size:15px;font-weight:700;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--bg3);padding:11px 14px;text-align:right;font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap;border-bottom:1px solid var(--border);}
+td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg3);}
+
+/* ─── BADGES ─── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.b-open{background:#dbeafe;color:#1d4ed8;}
+.b-assigned{background:#fef3c7;color:#92400e;}
+.b-solved{background:#d1fae5;color:#065f46;}
+.b-urgent{background:#fee2e2;color:#dc2626;}
+.b-normal{background:#f0fdf4;color:#166534;}
+.b-high{background:#fff7ed;color:#c2410c;}
+.b-low{background:#f0f9ff;color:#0369a1;}
+.b-it{background:#ede9fe;color:#5b21b6;}
+.b-mgr{background:#fdf4ff;color:#86198f;}
+.b-admin{background:#fef3c7;color:#92400e;}
+.b-user{background:#f0f9ff;color:#0369a1;}
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:9px;font-size:13px;font-weight:700;transition:.15s;cursor:pointer;border:none;}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-success{background:linear-gradient(135deg,var(--success),#059669);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-ghost{background:var(--bg);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--border);}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:8px;}
+
+/* ─── FORMS ─── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-grid.full{grid-template-columns:1fr;}
+.fg{margin-bottom:16px;}
+.fg label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;}
+.fg .inp,.fg select,.fg textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border2);border-radius:9px;font-size:13px;transition:border-color .2s;outline:none;background:var(--bg3);color:var(--text);}
+.fg select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center;}
+.fg .inp:focus,.fg select:focus,.fg textarea:focus{border-color:var(--primary);}
+.fg textarea{resize:vertical;min-height:90px;}
+
+/* ─── MODAL ─── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg2);border-radius:18px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 60px rgba(0,0,0,.2);}
+.modal-hdr{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-hdr h3{font-size:16px;font-weight:700;}
+.modal-close{background:none;color:var(--text2);font-size:18px;padding:4px;}
+.modal-close:hover{color:var(--danger);}
+.modal-body{padding:20px 24px;}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+/* ─── TICKET DETAIL ─── */
+.ticket-detail-card{background:var(--bg2);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.tdc-hdr{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.tdc-body{padding:20px 24px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.info-item label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px;}
+.info-item span{font-size:14px;color:var(--text);font-weight:500;}
+.desc-box{background:var(--bg3);border-radius:10px;padding:16px;font-size:14px;line-height:1.7;color:var(--text);border:1px solid var(--border);margin-bottom:16px;}
+.actions-bar{display:flex;gap:10px;flex-wrap:wrap;}
+
+/* ─── CHARTS ─── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
+.chart-card{background:var(--bg2);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.chart-card h3{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--text2);}
+
+/* ─── SEARCH / FILTER ─── */
+.search-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.search-bar .inp{width:220px;padding:8px 12px;font-size:13px;}
+.filter-select{padding:8px 28px 8px 12px;border:1.5px solid var(--border2);border-radius:9px;font-size:13px;background:var(--bg3);color:var(--text);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 10px center;outline:none;cursor:pointer;}
+.filter-select:focus{border-color:var(--primary);}
+
+/* ─── AI CHAT ─── */
+.chat-wrap{background:var(--bg2);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;height:calc(100vh - 160px);}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;}
+.chat-msg{max-width:78%;padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.6;}
+.chat-msg.user{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;align-self:flex-end;border-radius:12px 4px 12px 12px;}
+.chat-msg.ai{background:var(--bg3);color:var(--text);align-self:flex-start;border:1px solid var(--border);border-radius:4px 12px 12px 12px;}
+.chat-msg.thinking{color:var(--text3);font-style:italic;}
+.chat-input-row{padding:16px;border-top:1px solid var(--border);display:flex;gap:10px;}
+.chat-input-row textarea{flex:1;padding:10px 14px;border:1.5px solid var(--border2);border-radius:10px;font-size:14px;resize:none;outline:none;line-height:1.5;}
+.chat-input-row textarea:focus{border-color:var(--primary);}
+
+/* ─── TOAST ─── */
+#toastArea{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;}
+.toast{background:#1e293b;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;animation:fadeInUp .25s;white-space:nowrap;pointer-events:none;max-width:320px;text-align:center;}
+.toast.success{background:linear-gradient(135deg,#059669,#10b981);}
+.toast.error{background:linear-gradient(135deg,#dc2626,#ef4444);}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── EMPTY STATE ─── */
+.empty{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty i{font-size:40px;margin-bottom:12px;display:block;opacity:.4;}
+.empty p{font-size:14px;}
+
+/* ─── MOBILE HEADER ─── */
+.mob-hdr2{display:none;align-items:center;justify-content:space-between;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;position:sticky;top:0;z-index:50;}
+.mob-hdr2 .mh-logo{display:flex;align-items:center;gap:8px;}
+.mob-hdr2 .mh-logo-ic{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+.mob-hdr2 .mh-logo span{font-size:15px;font-weight:800;}
+.mob-hdr2-r{display:flex;align-items:center;gap:8px;}
+
+/* ─── MOBILE BODY ─── */
+.mob-body{display:none;padding:14px;overflow-y:auto;flex:1;}
+.mob-ticket{background:var(--bg2);border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;transition:.15s;}
+.mob-ticket:hover{transform:translateY(-1px);}
+.mob-ticket .mt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.mob-ticket .mt-id{font-size:11px;color:var(--text3);}
+.mob-ticket .mt-title{font-size:15px;font-weight:700;}
+.mob-ticket .mt-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+
+/* ─── MOBILE BOTTOM NAV ─── */
+.mob-bnav{display:none;grid-template-columns:repeat(5,1fr);background:var(--bg2);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:50;}
+.mob-bnav-i{display:flex;flex-direction:column;align-items:center;padding:8px 4px 10px;cursor:pointer;color:var(--text3);gap:3px;}
+.mob-bnav-i.active{color:var(--primary);}
+.mob-bnav-i i{font-size:18px;}
+.mob-bnav-i span{font-size:10px;font-weight:700;}
+
+/* ─── FAB ─── */
+.mob-fab{display:none;position:fixed;bottom:76px;left:20px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;font-size:22px;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(99,102,241,.4);z-index:60;cursor:pointer;border:none;}
+
+/* ─── RESPONSIVE: TABLET 641–1024 ─── */
+@media(min-width:641px) and (max-width:1024px){
+  .sidebar{width:var(--sidebar-ic);transition:width var(--transition);}
+  .sidebar.sb-open{width:var(--sidebar-w);}
+  .sb-logo{padding:16px 0;justify-content:center;}
+  .sidebar.sb-open .sb-logo{padding:18px 18px 14px;justify-content:flex-start;}
+  .sb-logo-tx,.sb-logo-sb,.sb-un,.sb-ur{display:none;}
+  .sidebar.sb-open .sb-logo-tx,.sidebar.sb-open .sb-logo-sb,.sidebar.sb-open .sb-un,.sidebar.sb-open .sb-ur{display:block;}
+  .sb-user{justify-content:center;padding:10px 0;}
+  .sidebar.sb-open .sb-user{justify-content:flex-start;padding:12px 18px;}
+  .sb-nav{padding:8px 4px;}
+  .sidebar.sb-open .sb-nav{padding:10px 8px;}
+  .sb-i{justify-content:center;padding:11px 0;}
+  .sidebar.sb-open .sb-i{justify-content:flex-start;padding:9px 12px;}
+  .sb-i span:not(.ic),.sb-sec,.nb{display:none;}
+  .sidebar.sb-open .sb-i span:not(.ic),.sidebar.sb-open .sb-sec,.sidebar.sb-open .nb{display:block;}
+  .sb-foot{padding:8px 4px;}
+  .sidebar.sb-open .sb-foot{padding:12px;}
+  .sb-out span{display:none;}
+  .sidebar.sb-open .sb-out span{display:inline;}
+  .main-area{margin-right:var(--sidebar-ic);}
+  .sidebar.sb-open~.main-area{margin-right:var(--sidebar-w);}
+  .sb-toggle-btn{display:block!important;}
+  .content{padding:16px;}
+  .sg{grid-template-columns:repeat(3,1fr);}
+  .charts-grid{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .info-grid{grid-template-columns:1fr;}
+}
+
+/* ─── RESPONSIVE: MOBILE ≤640 ─── */
+@media(max-width:640px){
+  .sidebar,.main-area{display:none!important;}
+  .mob-hdr2{display:flex!important;}
+  .mob-body{display:block!important;}
+  .mob-bnav{display:grid!important;}
+  .mob-fab{display:flex!important;}
+}
+
+/* ─── FORCE MOBILE VIEW (user role on any screen) ─── */
+#appPage.force-mobile-view .sidebar,
+#appPage.force-mobile-view .main-area{display:none!important;}
+#appPage.force-mobile-view .mob-hdr2{display:flex!important;}
+#appPage.force-mobile-view .mob-body{display:block!important;}
+#appPage.force-mobile-view .mob-bnav{display:grid!important;}
+#appPage.force-mobile-view .mob-fab{display:flex!important;}
+</style>
+</head>
+<body>
+<!-- ══════════════════════ LOGIN ══════════════════════ -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-ic"><i class="fas fa-headset"></i></div>
+      <h1>نظام بلاغات IT</h1>
+      <p>الدعم الفني المتكامل</p>
+    </div>
+    <div class="form-group">
+      <label class="lbl">رقم الموظف</label>
+      <input class="inp" id="loginEmp" type="text" placeholder="أدخل رقم موظفك" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="lbl">كلمة المرور</label>
+      <input class="inp" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ APP ══════════════════════ -->
+<div id="appPage">
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-ic"><i class="fas fa-headset"></i></div>
+      <div>
+        <div class="sb-logo-tx">نظام IT</div>
+        <div class="sb-logo-sb">مكتب الدعم الفني</div>
+      </div>
+      <button class="sb-toggle-btn" id="sbToggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+    <div class="sb-user">
+      <div class="sb-ua" id="sbAvatarTx"></div>
+      <div>
+        <div class="sb-un" id="sbName"></div>
+        <div class="sb-ur" id="sbRole"></div>
+      </div>
+    </div>
+    <nav class="sb-nav" id="sidebarNav"></nav>
+    <div class="sb-foot">
+      <div class="sb-out" onclick="doLogout()">
+        <span class="ic"><i class="fas fa-sign-out-alt"></i></span>
+        <span>خروج</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN AREA ── -->
+  <div class="main-area" id="mainArea">
+    <div class="topbar">
+      <div class="tb-l">
+        <div class="tb-title" id="tbTitle">لوحة التحكم</div>
+      </div>
+      <div class="tb-r">
+        <button class="snd-btn" onclick="toggleSound()" title="تبديل الصوت">
+          <i class="fas fa-volume-up" id="sndIc"></i>
+        </button>
+        <div class="tb-icon-btn" onclick="showView('notifs')" title="الإشعارات">
+          <i class="fas fa-bell"></i>
+          <div class="notif-dot" id="notifDot" style="display:none"></div>
+        </div>
+        <div class="tb-icon-btn" onclick="showView('profile')" title="حسابي">
+          <i class="fas fa-user-circle"></i>
+        </div>
+      </div>
+    </div>
+    <div class="content" id="mainContent"></div>
+  </div>
+
+  <!-- ── MOBILE HEADER ── -->
+  <div class="mob-hdr2">
+    <div class="mh-logo">
+      <div class="mh-logo-ic"><i class="fas fa-headset"></i></div>
+      <span id="mobTitle">البلاغات</span>
+    </div>
+    <div class="mob-hdr2-r">
+      <button class="snd-btn" onclick="toggleSound()"><i class="fas fa-volume-up" id="sndIc2"></i></button>
+      <div class="tb-icon-btn" style="position:relative">
+        <i class="fas fa-bell"></i>
+        <div class="notif-dot" id="notifDot2" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MOBILE BODY ── -->
+  <div class="mob-body" id="mobContent" style="padding-bottom:80px;"></div>
+
+  <!-- ── MOBILE BOTTOM NAV ── -->
+  <div class="mob-bnav" id="mobNav"></div>
+
+  <!-- ── FAB ── -->
+  <button class="mob-fab" onclick="showView('newTicket')">
+    <i class="fas fa-plus"></i>
+  </button>
+
+</div>
+
+<!-- ══════════════════════ MODALS ══════════════════════ -->
+<div class="modal-bg" id="confirmModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-hdr">
+      <h3 id="confirmTitle">تأكيد</h3>
+      <button class="modal-close" onclick="closeModal('confirmModal')">✕</button>
+    </div>
+    <div class="modal-body"><p id="confirmMsg"></p></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('confirmModal')">إلغاء</button>
+      <button class="btn btn-danger" id="confirmOkBtn">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="ticketModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3 id="ticketModalTitle">بلاغ جديد</h3>
+      <button class="modal-close" onclick="closeModal('ticketModal')">✕</button>
+    </div>
+    <div class="modal-body" id="ticketModalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('ticketModal')">إلغاء</button>
+      <button class="btn btn-primary" id="ticketModalSubmit" onclick="submitTicketModal()">إرسال</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastArea"></div>
+
+<!-- ══════════════════════ SCRIPT ══════════════════════ -->
+<script>
+'use strict';
+
+var S = {
+  user: null, session: null, tickets: [], users: [], depts: [],
+  notifs: [], unread: 0, pollSince: new Date(0).toISOString(),
+  pollTimer: null, currentView: '', charts: {}
+};
+
+var SCRIPT_URL = window.location.href.split('?')[0];
+var ROLES_IT    = ['it','it_manager','admin'];
+var ROLES_MGR   = ['manager','it_manager','admin'];
+var ROLES_STAFF = ['it','manager','it_manager','admin'];
+var ROLE_LABELS = {user:'مستخدم',it:'موظف IT',manager:'مراقب',it_manager:'مدير IT',admin:'مسؤول'};
+var PRIORITY_LABELS = ['عاجلة','عالية','عادية','منخفضة'];
+var PROBLEM_TYPES   = ['شبكة','طابعة','حاسوب','برنامج','إيميل','كاميرا','هاتف','عام'];
+var STATUS_LABELS   = ['مفتوحة','معينة','محلولة','مغلقة'];
+
+function isIT()    { return S.user && ROLES_IT.indexOf(S.user.role) >= 0; }
+function isMgr()   { return S.user && ROLES_MGR.indexOf(S.user.role) >= 0; }
+function isStaff() { return S.user && ROLES_STAFF.indexOf(S.user.role) >= 0; }
+function isAdmin() { return S.user && (S.user.role === 'admin' || S.user.role === 'it_manager'); }
+function roleLabel(r) { return ROLE_LABELS[r] || r; }
+
+function api(body, cb) {
+  if (S.session) body.sessionToken = S.session;
+  fetch(SCRIPT_URL, {
+    method: 'POST', body: JSON.stringify(body),
+    headers: {'Content-Type':'application/json'}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.error) { if(cb) cb(null, d.error); return; }
+    if (cb) cb(d);
+  })
+  .catch(function(e){ if(cb) cb(null, e.message); });
+}
+
+function doLogin() {
+  var emp  = document.getElementById('loginEmp').value.trim();
+  var pass = document.getElementById('loginPass').value;
+  var errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  if (!emp || !pass) { errEl.textContent = 'الرجاء إدخال البيانات'; return; }
+  api({ action:'login', empId:emp, password:pass }, function(d, err) {
+    if (err) { errEl.textContent = err; return; }
+    S.session = d.sessionToken; S.user = d.user;
+    localStorage.setItem('it_sess', d.sessionToken);
+    localStorage.setItem('it_user', JSON.stringify(d.user));
+    enterApp();
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('loginPage').style.display !== 'none') doLogin();
+});
+
+function doLogout() {
+  api({ action:'logout' }, function() {});
+  S.session = null; S.user = null;
+  localStorage.removeItem('it_sess'); localStorage.removeItem('it_user');
+  if (S.pollTimer) clearInterval(S.pollTimer);
+  document.getElementById('appPage').classList.remove('active','force-mobile-view');
+  document.getElementById('appPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginPass').value = '';
+}
+
+function tryAutoLogin() {
+  var sess = localStorage.getItem('it_sess');
+  var user = localStorage.getItem('it_user');
+  if (sess && user) {
+    try { S.session = sess; S.user = JSON.parse(user); enterApp(); }
+    catch(e) { localStorage.clear(); }
+  }
+}
+
+function enterApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').style.display   = 'flex';
+  document.getElementById('appPage').classList.add('active');
+  applyResponsiveLayout();
+  var u = S.user;
+  var initials = u.name.split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('');
+  document.getElementById('sbAvatarTx').textContent = initials;
+  document.getElementById('sbName').textContent     = u.name;
+  document.getElementById('sbRole').textContent     = roleLabel(u.role);
+  buildSidebarNav(); buildMobileNav();
+  showView(u.role === 'user' ? 'myTickets' : 'dashboard');
+  startPolling();
+}
+
+function buildSidebarNav() {
+  var nav = document.getElementById('sidebarNav');
+  nav.innerHTML = getNavItems().map(function(grp) {
+    var header = grp.label ? '<div class="sb-sec">' + grp.label + '</div>' : '';
+    var links  = grp.items.map(function(item) {
+      return '<div class="sb-i" data-view="' + item.view + '" onclick="showView(\'' + item.view + '\')">'
+        + '<span class="ic"><i class="' + item.icon + '"></i></span>'
+        + '<span>' + item.label + '</span>'
+        + (item.badge ? '<span class="nb" id="nb_' + item.view + '"></span>' : '')
+        + '</div>';
+    }).join('');
+    return header + links;
+  }).join('');
+}
+
+function buildMobileNav() {
+  document.getElementById('mobNav').innerHTML = getMobileNavItems().map(function(item) {
+    return '<div class="mob-bnav-i" data-view="' + item.view + '" onclick="showView(\'' + item.view + '\')">'
+      + '<i class="' + item.icon + '"></i><span>' + item.label + '</span></div>';
+  }).join('');
+}
+
+function getNavItems() {
+  var groups = [];
+  if (isStaff()) groups.push({ label:'الرئيسية', items:[
+    { view:'dashboard',  icon:'fas fa-chart-bar',   label:'لوحة التحكم' },
+    { view:'allTickets', icon:'fas fa-ticket-alt',  label:'البلاغات', badge:true },
+  ]});
+  groups.push({ label:'البلاغات', items:[
+    { view:'myTickets', icon:'fas fa-list',        label:'بلاغاتي' },
+    { view:'newTicket', icon:'fas fa-plus-circle', label:'بلاغ جديد' },
+  ]});
+  if (isIT()) groups.push({ label:'إدارة', items:[
+    { view:'staffList', icon:'fas fa-users',    label:'الموظفون' },
+    { view:'depts',     icon:'fas fa-building', label:'الأقسام' },
+  ]});
+  if (isStaff()) groups.push({ label:'أدوات', items:[
+    { view:'aiChat',  icon:'fas fa-robot',    label:'مساعد الذكاء' },
+    { view:'profile', icon:'fas fa-user-cog', label:'حسابي' },
+  ]});
+  else groups.push({ label:'', items:[{ view:'profile', icon:'fas fa-user-cog', label:'حسابي' }]});
+  return groups;
+}
+
+function getMobileNavItems() {
+  if (!isStaff()) return [
+    { view:'myTickets', icon:'fas fa-list',        label:'بلاغاتي' },
+    { view:'newTicket', icon:'fas fa-plus',         label:'جديد' },
+    { view:'notifs',    icon:'fas fa-bell',         label:'إشعارات' },
+    { view:'profile',   icon:'fas fa-user-circle',  label:'حسابي' },
+  ];
+  return [
+    { view:'dashboard',  icon:'fas fa-chart-bar',  label:'الرئيسية' },
+    { view:'allTickets', icon:'fas fa-ticket-alt', label:'البلاغات' },
+    { view:'newTicket',  icon:'fas fa-plus',        label:'جديد' },
+    { view:'aiChat',     icon:'fas fa-robot',       label:'AI' },
+    { view:'profile',    icon:'fas fa-user-circle', label:'حسابي' },
+  ];
+}
+
+function setActiveNav(view) {
+  document.querySelectorAll('.sb-i').forEach(function(el) {
+    el.classList.toggle('active', el.getAttribute('data-view') === view);
+  });
+  document.querySelectorAll('.mob-bnav-i').forEach(function(el) {
+    el.classList.toggle('active', el.getAttribute('data-view') === view);
+  });
+}
+
+function showView(view) {
+  S.currentView = view;
+  setActiveNav(view);
+  var titles = {
+    dashboard:'لوحة التحكم', allTickets:'جميع البلاغات', myTickets:'بلاغاتي',
+    newTicket:'بلاغ جديد', staffList:'إدارة الموظفين', depts:'الأقسام',
+    aiChat:'مساعد الذكاء الاصطناعي', profile:'الملف الشخصي', notifs:'الإشعارات'
+  };
+  setTitle(titles[view] || view);
+  var renders = {
+    dashboard:renderDashboard, allTickets:renderAllTickets, myTickets:renderMyTickets,
+    newTicket:renderNewTicket, staffList:renderStaffList, depts:renderDepts,
+    aiChat:renderAiChat, profile:renderProfile, notifs:renderNotifs
+  };
+  if (renders[view]) renders[view]();
+}
+
+function setTitle(t) {
+  document.getElementById('tbTitle').textContent  = t;
+  document.getElementById('mobTitle').textContent = t;
+}
+
+function setMainContent(html) {
+  document.getElementById('mainContent').innerHTML = html;
+  document.getElementById('mobContent').innerHTML  = html;
+}
+
+function renderDashboard() {
+  setMainContent('<div class="empty"><i class="fas fa-spinner fa-spin"></i><p>جارٍ التحميل...</p></div>');
+  api({ action:'getDashboard' }, function(d, err) {
+    if (err) { setMainContent('<div class="empty"><i class="fas fa-exclamation-circle"></i><p>' + err + '</p></div>'); return; }
+    var s = d.stats;
+    var html = '<div class="sg">'
+      + statCard('fa-ticket-alt','sc-blue', s.total, 'إجمالي البلاغات')
+      + statCard('fa-folder-open','sc-ylw', s.open, 'مفتوحة')
+      + statCard('fa-user-check','sc-grn', s.assigned, 'معينة')
+      + statCard('fa-check-circle','sc-grn', s.solved, 'محلولة')
+      + '</div>';
+    html += '<div class="charts-grid">'
+      + '<div class="chart-card"><h3>البلاغات حسب النوع</h3><canvas id="chartType" height="200"></canvas></div>'
+      + '<div class="chart-card"><h3>البلاغات حسب القسم</h3><canvas id="chartDept" height="200"></canvas></div>'
+      + '</div>';
+    if (d.recentTickets.length) {
+      html += '<div class="table-wrap" style="margin-top:20px"><div class="table-top"><h3>آخر البلاغات</h3></div>'
+        + '<table><thead><tr><th>الرقم</th><th>الموضوع</th><th>الحالة</th><th>الأولوية</th><th>القسم</th></tr></thead><tbody>'
+        + d.recentTickets.map(function(t) {
+            return '<tr onclick="openTicketDetail(\'' + t.id + '\')" style="cursor:pointer">'
+              + '<td><code>' + t.id + '</code></td><td>' + t.title + '</td>'
+              + '<td>' + statusBadge(t.status) + '</td><td>' + priorityBadge(t.priority) + '</td>'
+              + '<td>' + t.requesterDept + '</td></tr>';
+          }).join('')
+        + '</tbody></table></div>';
+    }
+    setMainContent(html);
+    setTimeout(function() { renderPieChart('chartType', d.byType); renderPieChart('chartDept', d.byDept); }, 50);
+  });
+}
+
+function statCard(icon, cls, val, label) {
+  return '<div class="stat-card"><div class="sc-ic ' + cls + '"><i class="fas ' + icon + '"></i></div>'
+    + '<div><div class="sc-v">' + val + '</div><div class="sc-l">' + label + '</div></div></div>';
+}
+
+function renderPieChart(id, data) {
+  var el = document.getElementById(id); if (!el) return;
+  var labels = Object.keys(data);
+  var values = labels.map(function(k){ return data[k]; });
+  var colors = ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#0ea5e9','#ec4899','#14b8a6'];
+  if (S.charts[id]) S.charts[id].destroy();
+  S.charts[id] = new Chart(el, {
+    type: 'doughnut',
+    data: { labels: labels, datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 2 }] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } } }
+  });
+}
+
+function renderAllTickets() { if (!isStaff()) { showView('myTickets'); return; } loadTickets(false); }
+function renderMyTickets()  { loadTickets(true); }
+
+function loadTickets(mine) {
+  setMainContent('<div class="empty"><i class="fas fa-spinner fa-spin"></i><p>جارٍ التحميل...</p></div>');
+  api({ action:'getTickets' }, function(d, err) {
+    if (err) { setMainContent('<div class="empty"><p>' + err + '</p></div>'); return; }
+    S.tickets = d.tickets;
+    var list  = mine ? d.tickets.filter(function(t){ return t.requesterId === S.user.id; }) : d.tickets;
+    renderTicketList(list);
+  });
+}
+
+function renderTicketList(list) {
+  var filterHtml = '<div class="search-bar">'
+    + '<input class="inp" id="ticketSearch" placeholder="🔍 بحث..." oninput="filterTickets()" style="width:200px">'
+    + '<select class="filter-select" id="filterStatus" onchange="filterTickets()">'
+    + '<option value="">كل الحالات</option>'
+    + STATUS_LABELS.map(function(s){ return '<option>' + s + '</option>'; }).join('')
+    + '</select>'
+    + '<select class="filter-select" id="filterPriority" onchange="filterTickets()">'
+    + '<option value="">كل الأولويات</option>'
+    + PRIORITY_LABELS.map(function(p){ return '<option>' + p + '</option>'; }).join('')
+    + '</select></div>';
+  var addBtn = '<button class="btn btn-primary" onclick="showView(\'newTicket\')" ><i class="fas fa-plus"></i> بلاغ جديد</button>';
+  var html = '<div class="page-hdr"><h2>' + (S.currentView === 'myTickets' ? 'بلاغاتي' : 'جميع البلاغات') + '</h2>' + addBtn + '</div>'
+    + '<div class="table-wrap"><div class="table-top">' + filterHtml
+    + '<span id="ticketCount" style="color:var(--text2);font-size:13px"></span></div>'
+    + '<div id="ticketTableBody">' + buildTicketTable(list) + '</div></div>';
+  var mobHtml = list.length ? list.map(mobTicketCard).join('') : '<div class="empty"><i class="fas fa-inbox"></i><p>لا توجد بلاغات</p></div>';
+  document.getElementById('mainContent').innerHTML = html;
+  document.getElementById('mobContent').innerHTML  = '<div style="padding-bottom:80px">' + mobHtml + '</div>';
+  updateTicketCount(list.length);
+}
+
+function buildTicketTable(list) {
+  if (!list.length) return '<div class="empty"><i class="fas fa-inbox"></i><p>لا توجد بلاغات</p></div>';
+  var cols = isStaff()
+    ? '<th>الرقم</th><th>الموضوع</th><th>مقدم الطلب</th><th>القسم</th><th>الحالة</th><th>الأولوية</th><th>التاريخ</th><th></th>'
+    : '<th>الرقم</th><th>الموضوع</th><th>الحالة</th><th>الأولوية</th><th>التاريخ</th><th></th>';
+  var rows = list.map(function(t) {
+    var actionBtns = isIT() ? actionButtons(t) : '';
+    if (isStaff()) {
+      return '<tr><td><code>' + t.id + '</code></td><td>' + t.title + '</td>'
+        + '<td>' + t.requesterName + '</td><td>' + t.requesterDept + '</td>'
+        + '<td>' + statusBadge(t.status) + '</td><td>' + priorityBadge(t.priority) + '</td>'
+        + '<td>' + fmtDate(t.createdAt) + '</td>'
+        + '<td><button class="btn btn-ghost btn-sm" onclick="openTicketDetail(\'' + t.id + '\')" ><i class="fas fa-eye"></i> عرض</button>' + actionBtns + '</td></tr>';
+    }
+    return '<tr><td><code>' + t.id + '</code></td><td>' + t.title + '</td>'
+      + '<td>' + statusBadge(t.status) + '</td><td>' + priorityBadge(t.priority) + '</td>'
+      + '<td>' + fmtDate(t.createdAt) + '</td>'
+      + '<td><button class="btn btn-ghost btn-sm" onclick="openTicketDetail(\'' + t.id + '\')" ><i class="fas fa-eye"></i> عرض</button></td></tr>';
+  }).join('');
+  return '<table><thead><tr>' + cols + '</tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+function mobTicketCard(t) {
+  return '<div class="mob-ticket" onclick="openTicketDetail(\'' + t.id + '\')" >'
+    + '<div class="mt-top"><span class="mt-id">' + t.id + '</span>' + statusBadge(t.status) + '</div>'
+    + '<div class="mt-title">' + t.title + '</div>'
+    + '<div class="mt-meta">' + priorityBadge(t.priority)
+    + '<span style="font-size:11px;color:var(--text3)">' + fmtDate(t.createdAt) + '</span></div>'
+    + '</div>';
+}
+
+function actionButtons(t) {
+  var btns = '';
+  if (t.status === 'مفتوحة') btns += ' <button class="btn btn-primary btn-sm" onclick="quickClaim(\'' + t.id + '\',event)"><i class="fas fa-hand-paper"></i> استلام</button>';
+  if (t.status !== 'محلولة') btns += ' <button class="btn btn-success btn-sm" onclick="quickSolve(\'' + t.id + '\',event)"><i class="fas fa-check"></i> حل</button>';
+  if (isMgr() && t.status === 'مفتوحة') btns += ' <button class="btn btn-ghost btn-sm" onclick="openAssignModal(\'' + t.id + '\',event)"><i class="fas fa-user-plus"></i> تعيين</button>';
+  return btns;
+}
+
+function filterTickets() {
+  var q  = (document.getElementById('ticketSearch')  ?.value || '').toLowerCase();
+  var st = (document.getElementById('filterStatus')  ?.value || '');
+  var pr = (document.getElementById('filterPriority')?.value || '');
+  var src = S.currentView === 'myTickets'
+    ? S.tickets.filter(function(t){ return t.requesterId === S.user.id; }) : S.tickets;
+  var filtered = src.filter(function(t) {
+    return (!q  || t.title.toLowerCase().includes(q) || t.id.toLowerCase().includes(q) || t.requesterName.toLowerCase().includes(q))
+        && (!st || t.status   === st)
+        && (!pr || t.priority === pr);
+  });
+  document.getElementById('ticketTableBody').innerHTML = buildTicketTable(filtered);
+  updateTicketCount(filtered.length);
+}
+
+function updateTicketCount(n) {
+  var el = document.getElementById('ticketCount');
+  if (el) el.textContent = n + ' بلاغ';
+}
+
+function openTicketDetail(id) {
+  api({ action:'getTicket', ticketId:id }, function(d, err) {
+    if (err) { toast(err, 'error'); return; }
+    var t = d.ticket;
+    var html = '<div class="ticket-detail-card">'
+      + '<div class="tdc-hdr">'
+      + '<div><div style="font-size:12px;color:var(--text3);margin-bottom:4px">' + t.id + '</div>'
+      + '<h2 style="font-size:18px;font-weight:800">' + t.title + '</h2>'
+      + '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">' + statusBadge(t.status) + priorityBadge(t.priority) + '</div></div>'
+      + '<button class="btn btn-ghost btn-sm" onclick="showView(\'' + S.currentView + '\')" ><i class="fas fa-arrow-right"></i> رجوع</button></div>'
+      + '<div class="tdc-body"><div class="info-grid">'
+      + infoItem('النوع', t.problemType) + infoItem('مقدم الطلب', t.requesterName)
+      + infoItem('القسم', t.requesterDept) + infoItem('المسند إلى', t.assignedName || 'غير معين')
+      + infoItem('تاريخ الإنشاء', fmtDate(t.createdAt)) + infoItem('آخر تحديث', fmtDate(t.updatedAt))
+      + (t.solvedAt ? infoItem('تاريخ الحل', fmtDate(t.solvedAt)) : '')
+      + '</div>'
+      + (t.desc  ? '<div class="desc-box">' + t.desc + '</div>' : '')
+      + (t.notes ? '<div class="desc-box" style="border-color:#10b981"><strong>ملاحظات:</strong><br>' + t.notes + '</div>' : '');
+    if (isIT() && t.status !== 'محلولة') {
+      html += '<div class="actions-bar">';
+      if (t.status === 'مفتوحة') html += '<button class="btn btn-primary" onclick="quickClaim(\'' + t.id + '\')" ><i class="fas fa-hand-paper"></i> استلام البلاغ</button>';
+      html += '<button class="btn btn-success" onclick="openSolveModal(\'' + t.id + '\')" ><i class="fas fa-check"></i> تسجيل الحل</button>';
+      if (isMgr()) html += '<button class="btn btn-ghost" onclick="openAssignModal(\'' + t.id + '\')" ><i class="fas fa-user-plus"></i> تعيين</button>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+    setMainContent(html);
+  });
+}
+
+function infoItem(label, value) {
+  return '<div class="info-item"><label>' + label + '</label><span>' + (value || '—') + '</span></div>';
+}
+
+function renderNewTicket() {
+  api({ action:'getDepts' }, function(d) {
+    var depts = (d && d.depts) || [];
+    var html = '<div class="page-hdr"><h2>بلاغ جديد</h2></div>'
+      + '<div style="background:var(--bg2);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);max-width:600px">'
+      + '<div class="form-grid"><div class="fg"><label>نوع المشكلة</label>'
+      + '<select class="inp" id="nt_type">' + PROBLEM_TYPES.map(function(p){ return '<option>' + p + '</option>'; }).join('') + '</select></div>'
+      + '<div class="fg"><label>الأولوية</label><select class="inp" id="nt_pri">'
+      + PRIORITY_LABELS.map(function(p,i){ return '<option' + (i===2?' selected':'') + '>' + p + '</option>'; }).join('') + '</select></div></div>'
+      + '<div class="fg"><label>الموضوع</label><input class="inp" id="nt_title" placeholder="اكتب عنوان البلاغ..."></div>'
+      + '<div class="fg"><label>وصف المشكلة</label><textarea class="inp" id="nt_desc" rows="4" placeholder="اشرح المشكلة بالتفصيل..."></textarea></div>';
+    if (isIT()) {
+      html += '<div class="form-grid">'
+        + '<div class="fg"><label>اسم المستخدم (اختياري)</label><input class="inp" id="nt_rname" placeholder="اسم مقدم الطلب"></div>'
+        + '<div class="fg"><label>القسم</label><select class="inp" id="nt_dept">'
+        + '<option value="">-- اختر القسم --</option>'
+        + depts.map(function(d){ return '<option value="' + d.name + '">' + d.name + '</option>'; }).join('')
+        + '</select></div></div>';
+    }
+    html += '<div style="display:flex;gap:10px;margin-top:8px">'
+      + '<button class="btn btn-primary" onclick="submitNewTicket()"><i class="fas fa-paper-plane"></i> إرسال البلاغ</button>'
+      + '<button class="btn btn-ghost" onclick="showView(\'myTickets\')">إلغاء</button>'
+      + '</div></div>';
+    setMainContent(html);
+  });
+}
+
+function submitNewTicket() {
+  var title = document.getElementById('nt_title')?.value.trim();
+  var desc  = document.getElementById('nt_desc')?.value.trim();
+  var type  = document.getElementById('nt_type')?.value;
+  var pri   = document.getElementById('nt_pri')?.value;
+  var rname = document.getElementById('nt_rname')?.value.trim();
+  var rdept = document.getElementById('nt_dept')?.value.trim();
+  if (!title) { toast('الرجاء إدخال موضوع البلاغ', 'error'); return; }
+  var body = { action:'createTicket', title:title, desc:desc, problemType:type, priority:pri };
+  if (rname) body.requesterName = rname;
+  if (rdept) body.requesterDept = rdept;
+  api(body, function(d, err) {
+    if (err) { toast(err, 'error'); playSound('warn'); return; }
+    toast('تم إرسال البلاغ بنجاح ✅', 'success'); playSound('success'); showView('myTickets');
+  });
+}
+
+function quickClaim(id, evt) {
+  if (evt) evt.stopPropagation();
+  api({ action:'claimTicket', ticketId:id }, function(d, err) {
+    if (err) { toast(err, 'error'); playSound('warn'); return; }
+    toast('تم استلام البلاغ ✋', 'success'); playSound('success'); refreshCurrentView();
+  });
+}
+
+function quickSolve(id, evt) { if (evt) evt.stopPropagation(); openSolveModal(id); }
+
+function openSolveModal(id) {
+  document.getElementById('ticketModalTitle').textContent = 'تسجيل حل البلاغ';
+  document.getElementById('ticketModalBody').innerHTML =
+    '<div class="fg"><label>ملاحظات الحل (اختياري)</label>'
+    + '<textarea class="inp" id="solve_notes" rows="3" placeholder="اكتب ملاحظات الحل..."></textarea></div>';
+  document.getElementById('ticketModalSubmit').onclick = function() {
+    var notes = document.getElementById('solve_notes').value.trim();
+    api({ action:'solveTicket', ticketId:id, notes:notes }, function(d, err) {
+      if (err) { toast(err, 'error'); playSound('warn'); return; }
+      closeModal('ticketModal'); toast('تم تسجيل حل البلاغ ✅', 'success'); playSound('success'); refreshCurrentView();
+    });
+  };
+  openModal('ticketModal');
+}
+
+function openAssignModal(id, evt) {
+  if (evt) evt.stopPropagation();
+  api({ action:'getUsers' }, function(d, err) {
+    if (err) { toast(err, 'error'); return; }
+    var itStaff = d.users.filter(function(u){ return ROLES_IT.indexOf(u.role) >= 0 && u.active; });
+    var opts = itStaff.map(function(u){ return '<option value="' + u.id + '">' + u.name + ' — ' + roleLabel(u.role) + '</option>'; }).join('');
+    document.getElementById('ticketModalTitle').textContent = 'تعيين البلاغ';
+    document.getElementById('ticketModalBody').innerHTML =
+      '<div class="fg"><label>اختر موظف IT</label>'
+      + '<select class="inp" id="assign_user"><option value="">-- اختر --</option>' + opts + '</select></div>';
+    document.getElementById('ticketModalSubmit').onclick = function() {
+      var uid = document.getElementById('assign_user').value;
+      if (!uid) { toast('الرجاء اختيار موظف', 'error'); return; }
+      api({ action:'assignTicket', ticketId:id, assigneeId:uid }, function(d, err) {
+        if (err) { toast(err, 'error'); return; }
+        closeModal('ticketModal'); toast('تم التعيين بنجاح', 'success'); refreshCurrentView();
+      });
+    };
+    openModal('ticketModal');
+  });
+}
+
+function renderStaffList() {
+  requireStaff();
+  api({ action:'getUsers' }, function(d, err) {
+    if (err) { setMainContent('<div class="empty"><p>' + err + '</p></div>'); return; }
+    S.users = d.users;
+    var addBtn = isAdmin() ? '<button class="btn btn-primary" onclick="openAddUserModal()"><i class="fas fa-user-plus"></i> موظف جديد</button>' : '';
+    var html = '<div class="page-hdr"><h2>الموظفون</h2>' + addBtn + '</div>'
+      + '<div class="table-wrap"><div class="table-top"><div class="search-bar">'
+      + '<input class="inp" id="userSearch" placeholder="🔍 بحث..." oninput="filterUsers()" style="width:200px"></div></div>'
+      + '<div id="userTableBody">' + buildUserTable(d.users) + '</div></div>';
+    setMainContent(html);
+  });
+}
+
+function buildUserTable(users) {
+  if (!users.length) return '<div class="empty"><i class="fas fa-users"></i><p>لا يوجد موظفون</p></div>';
+  var rows = users.map(function(u) {
+    var activeEl = u.active
+      ? '<span class="badge" style="background:#d1fae5;color:#065f46">نشط</span>'
+      : '<span class="badge" style="background:#fee2e2;color:#dc2626">معطل</span>';
+    var editBtn = isAdmin()
+      ? '<button class="btn btn-ghost btn-sm btn-icon" onclick="openEditUserModal(\'' + u.id + '\')" title="تعديل"><i class="fas fa-edit"></i></button>' : '';
+    return '<tr><td>' + u.name + '</td><td>' + u.empId + '</td><td>' + u.email + '</td>'
+      + '<td>' + roleBadge(u.role) + '</td><td>' + u.dept + '</td><td>' + activeEl + '</td><td>' + editBtn + '</td></tr>';
+  }).join('');
+  return '<table><thead><tr><th>الاسم</th><th>رقم الموظف</th><th>الإيميل</th><th>الدور</th><th>القسم</th><th>الحالة</th><th></th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table>';
+}
+
+function filterUsers() {
+  var q = document.getElementById('userSearch')?.value.toLowerCase() || '';
+  var filtered = S.users.filter(function(u) {
+    return u.name.toLowerCase().includes(q) || u.empId.includes(q) || u.email.toLowerCase().includes(q);
+  });
+  document.getElementById('userTableBody').innerHTML = buildUserTable(filtered);
+}
+
+function openAddUserModal() {
+  document.getElementById('ticketModalTitle').textContent = 'إضافة موظف جديد';
+  document.getElementById('ticketModalBody').innerHTML = userForm(null);
+  document.getElementById('ticketModalSubmit').onclick = function() {
+    var body = collectUserForm(); if (!body) return;
+    body.action = 'addUser';
+    api(body, function(d, err) {
+      if (err) { toast(err, 'error'); return; }
+      closeModal('ticketModal'); toast('تم إضافة الموظف بنجاح', 'success'); renderStaffList();
+    });
+  };
+  openModal('ticketModal');
+}
+
+function openEditUserModal(uid) {
+  var u = S.users.find(function(x){ return x.id === uid; }); if (!u) return;
+  document.getElementById('ticketModalTitle').textContent = 'تعديل بيانات موظف';
+  document.getElementById('ticketModalBody').innerHTML = userForm(u);
+  document.getElementById('ticketModalSubmit').onclick = function() {
+    var body = collectUserForm(); if (!body) return;
+    body.action = 'updateUser'; body.userId = uid;
+    body.active = document.getElementById('uf_active')?.value === 'true';
+    api(body, function(d, err) {
+      if (err) { toast(err, 'error'); return; }
+      closeModal('ticketModal'); toast('تم تحديث بيانات الموظف', 'success'); renderStaffList();
+    });
+  };
+  openModal('ticketModal');
+}
+
+function userForm(u) {
+  var roleOpts = ['user','it','manager','it_manager','admin'].map(function(r) {
+    return '<option value="' + r + '"' + (u && u.role===r?' selected':'') + '>' + roleLabel(r) + '</option>';
+  }).join('');
+  var activeOpts = u
+    ? '<div class="fg"><label>الحالة</label><select class="inp" id="uf_active">'
+      + '<option value="true"' + (u.active?' selected':'') + '>نشط</option>'
+      + '<option value="false"' + (!u.active?' selected':'') + '>معطل</option>'
+      + '</select></div>' : '';
+  return '<div class="form-grid">'
+    + '<div class="fg"><label>الاسم الكامل</label><input class="inp" id="uf_name" value="' + (u?u.name:'') + '" placeholder="الاسم"></div>'
+    + '<div class="fg"><label>رقم الموظف</label><input class="inp" id="uf_empid" value="' + (u?u.empId:'') + '" placeholder="رقم الموظف"></div>'
+    + '</div><div class="form-grid">'
+    + '<div class="fg"><label>البريد الإلكتروني</label><input class="inp" id="uf_email" type="email" value="' + (u?u.email:'') + '" placeholder="الإيميل"></div>'
+    + '<div class="fg"><label>الدور</label><select class="inp" id="uf_role">' + roleOpts + '</select></div>'
+    + '</div><div class="form-grid">'
+    + '<div class="fg"><label>القسم</label><input class="inp" id="uf_dept" value="' + (u?u.dept:'') + '" placeholder="القسم"></div>'
+    + (u ? '' : '<div class="fg"><label>كلمة المرور</label><input class="inp" id="uf_pass" type="password" placeholder="كلمة المرور"></div>')
+    + '</div>' + activeOpts;
+}
+
+function collectUserForm() {
+  var name  = document.getElementById('uf_name')?.value.trim();
+  var empId = document.getElementById('uf_empid')?.value.trim();
+  var email = document.getElementById('uf_email')?.value.trim();
+  var role  = document.getElementById('uf_role')?.value;
+  var dept  = document.getElementById('uf_dept')?.value.trim();
+  var pass  = document.getElementById('uf_pass')?.value;
+  if (!name || !empId) { toast('الاسم ورقم الموظف مطلوبان', 'error'); return null; }
+  var b = { name:name, empId:empId, email:email, role:role, dept:dept };
+  if (pass) b.password = pass;
+  return b;
+}
+
+function renderDepts() {
+  requireStaff();
+  api({ action:'getDepts' }, function(d, err) {
+    if (err) { setMainContent('<div class="empty"><p>' + err + '</p></div>'); return; }
+    S.depts = d.depts;
+    var addBtn = isAdmin() ? '<button class="btn btn-primary" onclick="openAddDeptModal()"><i class="fas fa-plus"></i> إضافة قسم</button>' : '';
+    var rows = d.depts.map(function(dept) {
+      var delBtn = isAdmin()
+        ? '<button class="btn btn-danger btn-sm btn-icon" onclick="deleteDept(\'' + dept.id + '\')" title="حذف"><i class="fas fa-trash"></i></button>' : '';
+      return '<tr><td>' + dept.name + '</td><td>' + dept.id + '</td><td>' + delBtn + '</td></tr>';
+    }).join('');
+    var html = '<div class="page-hdr"><h2>الأقسام</h2>' + addBtn + '</div>'
+      + '<div class="table-wrap"><table><thead><tr><th>اسم القسم</th><th>المعرف</th><th></th></tr></thead>'
+      + '<tbody>' + (rows || '<tr><td colspan="3"><div class="empty"><p>لا توجد أقسام</p></div></td></tr>') + '</tbody></table></div>';
+    setMainContent(html);
+  });
+}
+
+function openAddDeptModal() {
+  document.getElementById('ticketModalTitle').textContent = 'إضافة قسم جديد';
+  document.getElementById('ticketModalBody').innerHTML = '<div class="fg"><label>اسم القسم</label><input class="inp" id="dept_name" placeholder="اسم القسم"></div>';
+  document.getElementById('ticketModalSubmit').onclick = function() {
+    var name = document.getElementById('dept_name').value.trim();
+    if (!name) { toast('اسم القسم مطلوب', 'error'); return; }
+    api({ action:'addDept', name:name }, function(d, err) {
+      if (err) { toast(err, 'error'); return; }
+      closeModal('ticketModal'); toast('تم إضافة القسم', 'success'); renderDepts();
+    });
+  };
+  openModal('ticketModal');
+}
+
+function deleteDept(id) {
+  confirm2('حذف القسم', 'هل أنت متأكد من حذف هذا القسم؟', function() {
+    api({ action:'deleteDept', deptId:id }, function(d, err) {
+      if (err) { toast(err, 'error'); return; }
+      toast('تم حذف القسم', 'success'); renderDepts();
+    });
+  });
+}
+
+function renderNotifs() {
+  var html = '<div class="page-hdr"><h2>الإشعارات</h2>'
+    + '<button class="btn btn-ghost btn-sm" onclick="markAllRead()">تحديد الكل كمقروء</button></div>'
+    + '<div class="table-wrap"><div id="notifList">' + buildNotifList() + '</div></div>';
+  setMainContent(html);
+}
+
+function buildNotifList() {
+  if (!S.notifs.length) return '<div class="empty"><i class="fas fa-bell-slash"></i><p>لا توجد إشعارات</p></div>';
+  return S.notifs.slice().reverse().map(function(n) {
+    var style = n.read ? 'opacity:.6' : 'background:#eef2ff';
+    return '<div style="padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;' + style + '" onclick="openNotif(\'' + n.id + '\',\'' + n.ticketId + '\')" >'
+      + '<div style="font-size:13px;font-weight:' + (n.read?'400':'700') + '">' + n.message + '</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:3px">' + fmtDate(n.createdAt) + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openNotif(notifId, ticketId) {
+  api({ action:'markRead', notifId:notifId }, function(){});
+  var notif = S.notifs.find(function(n){ return n.id === notifId; });
+  if (notif) notif.read = true;
+  updNB();
+  if (ticketId) openTicketDetail(ticketId);
+}
+
+function markAllRead() {
+  S.notifs.forEach(function(n) {
+    if (!n.read) { api({ action:'markRead', notifId:n.id }, function(){}); n.read = true; }
+  });
+  updNB(); renderNotifs();
+}
+
+function renderProfile() {
+  var u = S.user;
+  var html = '<div class="page-hdr"><h2>الملف الشخصي</h2></div><div style="max-width:500px">'
+    + '<div style="background:var(--bg2);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:16px">'
+    + '<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">'
+    + '<div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff">'
+    + u.name.split(' ').slice(0,2).map(function(w){return w[0];}).join('') + '</div>'
+    + '<div><div style="font-size:18px;font-weight:800">' + u.name + '</div><div>' + roleBadge(u.role) + '</div></div></div>'
+    + '<table style="width:100%;border-collapse:collapse">'
+    + profRow('رقم الموظف', u.empId) + profRow('البريد الإلكتروني', u.email)
+    + profRow('القسم', u.dept || '—') + profRow('الدور', roleLabel(u.role))
+    + '</table></div>'
+    + '<div style="background:var(--bg2);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)">'
+    + '<h3 style="margin-bottom:16px;font-size:15px">تغيير كلمة المرور</h3>'
+    + '<div class="fg"><label>كلمة المرور الحالية</label><input class="inp" id="cp_old" type="password"></div>'
+    + '<div class="fg"><label>كلمة المرور الجديدة</label><input class="inp" id="cp_new" type="password"></div>'
+    + '<div class="fg"><label>تأكيد كلمة المرور</label><input class="inp" id="cp_conf" type="password"></div>'
+    + '<button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-key"></i> تغيير</button>'
+    + '</div></div>';
+  setMainContent(html);
+}
+
+function profRow(label, value) {
+  return '<tr><td style="padding:8px 0;color:var(--text2);width:40%;font-size:13px">' + label + '</td>'
+    + '<td style="padding:8px 0;font-size:14px;font-weight:600">' + value + '</td></tr>';
+}
+
+function changePassword() {
+  var old  = document.getElementById('cp_old').value;
+  var nw   = document.getElementById('cp_new').value;
+  var conf = document.getElementById('cp_conf').value;
+  if (!old || !nw) { toast('الحقول مطلوبة', 'error'); return; }
+  if (nw !== conf) { toast('كلمة المرور الجديدة غير متطابقة', 'error'); return; }
+  api({ action:'changePassword', oldPassword:old, newPassword:nw }, function(d, err) {
+    if (err) { toast(err, 'error'); return; }
+    toast('تم تغيير كلمة المرور ✅', 'success');
+    document.getElementById('cp_old').value = '';
+    document.getElementById('cp_new').value = '';
+    document.getElementById('cp_conf').value = '';
+  });
+}
+
+var chatHistory = [];
+
+function renderAiChat() {
+  setMainContent(
+    '<div class="page-hdr"><h2>مساعد الذكاء الاصطناعي</h2></div>'
+    + '<div class="chat-wrap">'
+    + '<div class="chat-msgs" id="chatMsgs"><div class="chat-msg ai">مرحباً! أنا مساعد IT الذكي. كيف يمكنني مساعدتك؟</div></div>'
+    + '<div class="chat-input-row">'
+    + '<textarea id="chatInput" rows="2" placeholder="اكتب سؤالك هنا..." onkeydown="chatKeydown(event)"></textarea>'
+    + '<button class="btn btn-primary" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>'
+    + '</div></div>'
+  );
+  document.getElementById('mobContent').innerHTML = document.getElementById('mainContent').innerHTML;
+}
+
+function chatKeydown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }
+
+function sendChat() {
+  var input = document.getElementById('chatInput');
+  var msg   = input?.value.trim(); if (!msg) return;
+  input.value = '';
+  appendChatMsg('user', msg);
+  chatHistory.push({ role:'user', content:msg });
+  var thinking = appendChatMsg('ai thinking', '...');
+  api({ action:'aiChat', messages: chatHistory.slice(-10) }, function(d, err) {
+    thinking.remove();
+    if (err) { appendChatMsg('ai', 'عذراً، حدث خطأ: ' + err); return; }
+    appendChatMsg('ai', d.reply);
+    chatHistory.push({ role:'assistant', content:d.reply });
+  });
+}
+
+function appendChatMsg(type, text) {
+  var el  = document.getElementById('chatMsgs');
+  if (!el) return { remove: function(){} };
+  var div = document.createElement('div');
+  div.className = 'chat-msg ' + type;
+  div.textContent = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+  return div;
+}
+
+function startPolling() {
+  if (S.pollTimer) clearInterval(S.pollTimer);
+  pollNotifs();
+  S.pollTimer = setInterval(pollNotifs, 30000);
+}
+
+function pollNotifs() {
+  api({ action:'pollNotifs', since:S.pollSince }, function(d, err) {
+    if (err) return;
+    if (d.notifs && d.notifs.length) {
+      d.notifs.forEach(function(n) {
+        var exists = S.notifs.some(function(x){ return x.id === n.id; });
+        if (!exists) S.notifs.push(n);
+      });
+      S.pollSince = new Date().toISOString();
+    }
+    if (d.newTickets && d.newTickets.length > 0) playSound('notif');
+    S.unread = d.unreadCount || 0;
+    updNB();
+  });
+}
+
+function updNB() {
+  var dot1 = document.getElementById('notifDot');
+  var dot2 = document.getElementById('notifDot2');
+  var nb   = document.getElementById('nb_notifs');
+  var show = S.unread > 0;
+  if (dot1) dot1.style.display = show ? 'block' : 'none';
+  if (dot2) dot2.style.display = show ? 'block' : 'none';
+  if (nb)   { nb.textContent = S.unread > 0 ? S.unread : ''; nb.style.display = show ? 'inline' : 'none'; }
+}
+
+function applyResponsiveLayout() {
+  var u = S.user; if (!u) return;
+  var app = document.getElementById('appPage'); if (!app) return;
+  if (u.role === 'user') { app.classList.add('force-mobile-view'); return; }
+  if (window.innerWidth <= 640) app.classList.add('force-mobile-view');
+  else app.classList.remove('force-mobile-view');
+}
+
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  if (sb) sb.classList.toggle('sb-open');
+}
+
+window.addEventListener('resize', function() {
+  if (S.user && S.user.role === 'user') return;
+  applyResponsiveLayout();
+});
+
+var _audioCtx = null, _soundOn = true;
+
+function _ctx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  return _audioCtx;
+}
+
+function playSound(type) {
+  if (!_soundOn) return;
+  var ctx = _ctx(); if (!ctx) return;
+  try {
+    var seqs = {
+      notif:   [{f:880,d:.07},{f:1100,d:.07},{f:1320,d:.12}],
+      success: [{f:523,d:.1},{f:659,d:.1},{f:784,d:.2}],
+      warn:    [{f:440,d:.1},{f:330,d:.18}],
+      tick:    [{f:900,d:.04}]
+    };
+    var seq = seqs[type] || seqs.tick;
+    var t   = ctx.currentTime + 0.04;
+    seq.forEach(function(n) {
+      var osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(n.f, t);
+      g.gain.setValueAtTime(0.18, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + n.d);
+      osc.start(t); osc.stop(t + n.d);
+      t += n.d + 0.02;
+    });
+  } catch(e) {}
+}
+
+function toggleSound() {
+  _soundOn = !_soundOn;
+  var ic1 = document.getElementById('sndIc');
+  var ic2 = document.getElementById('sndIc2');
+  var cls = 'fas fa-volume-' + (_soundOn ? 'up' : 'mute');
+  if (ic1) ic1.className = cls;
+  if (ic2) ic2.className = cls;
+  toast(_soundOn ? '🔔 الصوت مفعل' : '🔇 الصوت مكتوم');
+}
+
+function statusBadge(s) {
+  var map = { 'مفتوحة':'b-open', 'معينة':'b-assigned', 'محلولة':'b-solved', 'مغلقة':'b-user' };
+  return '<span class="badge ' + (map[s]||'b-open') + '">' + s + '</span>';
+}
+
+function priorityBadge(p) {
+  var map = { 'عاجلة':'b-urgent', 'عالية':'b-high', 'عادية':'b-normal', 'منخفضة':'b-low' };
+  return '<span class="badge ' + (map[p]||'b-normal') + '">' + p + '</span>';
+}
+
+function roleBadge(r) {
+  var map = { it:'b-it', manager:'b-mgr', it_manager:'b-mgr', admin:'b-admin', user:'b-user' };
+  return '<span class="badge ' + (map[r]||'b-user') + '">' + roleLabel(r) + '</span>';
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  var d = new Date(iso);
+  return d.toLocaleDateString('ar-IQ') + ' ' + d.toLocaleTimeString('ar-IQ', {hour:'2-digit',minute:'2-digit'});
+}
+
+function requireStaff() {
+  if (!isStaff()) { showView('myTickets'); throw new Error('غير مصرح'); }
+}
+
+function refreshCurrentView() { if (S.currentView) showView(S.currentView); }
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function confirm2(title, msg, cb) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent   = msg;
+  document.getElementById('confirmOkBtn').onclick = function() { closeModal('confirmModal'); cb(); };
+  openModal('confirmModal');
+}
+
+function toast(msg, type) {
+  var area = document.getElementById('toastArea');
+  var el   = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  area.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3000);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-bg.open').forEach(function(m) { m.classList.remove('open'); });
+  }
+});
+
+window.addEventListener('load', function() { tryAutoLogin(); });
+</script>
+</body>
+</html>
