@@ -1157,3 +1157,51 @@ function errResp(msg) {
   return ContentService.createTextOutput(JSON.stringify({ error: msg }))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+// ═══════════════════════════════════════════════════════
+//  SETUP — شغّلها مرة وحدة بس
+// ═══════════════════════════════════════════════════════
+
+function setupInitialData() {
+  // صنع الشيتات
+  getSheet(SH_USERS);
+  getSheet(SH_TICKETS);
+  getSheet(SH_SESSIONS);
+  getSheet(SH_NOTIFS);
+  getSheet(SH_DEPTS);
+
+  // تحقق إذا في يوزر admin موجود
+  var us = getSheet(SH_USERS).getDataRange().getValues();
+  for (var i = 1; i < us.length; i++) {
+    if (us[i][UC.role] === 'admin') {
+      Logger.log('✅ يوجد admin مسبقاً: ' + us[i][UC.empId]);
+      return;
+    }
+  }
+
+  // أضف يوزر admin
+  var row = new Array(9).fill('');
+  row[UC.id]       = 'U000000001';
+  row[UC.name]     = 'مدير النظام';
+  row[UC.empId]    = '1001';
+  row[UC.email]    = '';
+  row[UC.role]     = 'admin';
+  row[UC.dept]     = 'IT';
+  row[UC.password] = '1001';
+  row[UC.active]   = true;
+  row[UC.internet] = '';
+  getSheet(SH_USERS).appendRow(row);
+
+  // أضف قسم افتراضي
+  var depts = getSheet(SH_DEPTS).getDataRange().getValues();
+  if (depts.length <= 1) {
+    getSheet(SH_DEPTS).appendRow(['D000001', 'قسم IT']);
+    getSheet(SH_DEPTS).appendRow(['D000002', 'قسم المحاسبة']);
+    getSheet(SH_DEPTS).appendRow(['D000003', 'قسم الإدارة']);
+  }
+
+  Logger.log('✅ تم الإعداد بنجاح!');
+  Logger.log('👤 رقم الموظف: 1001');
+  Logger.log('🔑 كلمة المرور: 1001');
+  Logger.log('🔐 الدور: admin');
+}
