@@ -161,13 +161,14 @@ label{font-size:11px;font-weight:700;color:var(--sl);display:block;margin-bottom
 .app.force-mobile-view .mob-fab{display:flex}
 
 /* CSS-only fallback: force mobile layout on narrow viewports even if JS hasn't applied
-   .force-mobile-view yet (covers race conditions on first paint / slow JS init). */
+   .force-mobile-view yet (covers race conditions on first paint / slow JS init).
+   Only applies to the employee (user-role) mobile layout. */
 @media(max-width:900px){
-  #appPage.active .sidebar,#appPage.active .main-area{display:none!important}
-  #appPage.active .mob-hdr2{display:flex;width:100%;max-width:none}
-  #appPage.active .mob-bnav{display:grid;width:100%;max-width:none}
-  #appPage.active .mob-body{display:block;position:fixed;top:60px;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom,0px));width:100%;height:auto;min-height:unset;max-width:none;padding-top:0;padding-bottom:24px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-  #appPage.active .mob-fab{display:flex}
+  #appPage.active.force-mobile-view .sidebar,#appPage.active.force-mobile-view .main-area{display:none!important}
+  #appPage.active.force-mobile-view .mob-hdr2{display:flex;width:100%;max-width:none}
+  #appPage.active.force-mobile-view .mob-bnav{display:grid;width:100%;max-width:none}
+  #appPage.active.force-mobile-view .mob-body{display:block;position:fixed;top:60px;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom,0px));width:100%;height:auto;min-height:unset;max-width:none;padding-top:0;padding-bottom:24px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  #appPage.active.force-mobile-view .mob-fab{display:flex}
 }
 
 /* ── COMPONENTS ── */
