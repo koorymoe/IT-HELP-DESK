@@ -20,6 +20,16 @@ function cc(k){if(k)localStorage.removeItem('hd_'+k);else Object.keys(localStora
 function esc(v){if(v==null)return'';return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);}
 function tpw(i,e){const el=document.getElementById(i),ic=document.getElementById(e);el.type=el.type==='password'?'text':'password';ic.className='fas '+(el.type==='password'?'fa-eye':'fa-eye-slash');}
 
+function toggleSidebar(){
+  const sb=document.querySelector('.sidebar');
+  if(!sb)return;
+  sb.classList.toggle('open');
+  let bd=document.querySelector('.sb-backdrop');
+  if(sb.classList.contains('open')){
+    if(!bd){bd=document.createElement('div');bd.className='sb-backdrop';bd.onclick=toggleSidebar;document.body.appendChild(bd);}
+  }else if(bd){bd.remove();}
+}
+
 function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
 /* ── NAV ── */
