@@ -98,10 +98,10 @@ function enterApp(){
   document.getElementById('sb-n').textContent=u.firstName+' '+u.lastName;
   document.getElementById('sb-r').textContent=ROLE_L[role]||role;
   document.getElementById('tb-av').textContent=ini;
-  const isIT=['it','it_manager','admin'].includes(role);
+  const isIT=['it','tech','it_manager','admin'].includes(role);
   const isMgr=['manager','it_manager','admin'].includes(role);
   const isAdmin=role==='admin';
-  const isStaff=['it','manager','it_manager','admin'].includes(role);
+  const isStaff=['it','tech','manager','it_manager','admin'].includes(role);
   document.querySelectorAll('.s-staff').forEach(el=>el.style.display=isStaff?'':'none');
   document.querySelectorAll('.s-it').forEach(el=>el.style.display=isIT?'':'none');
   document.querySelectorAll('.s-mgr').forEach(el=>el.style.display=isMgr?'':'none');
@@ -110,7 +110,7 @@ function enterApp(){
   document.querySelectorAll('.s-tech').forEach(el=>el.style.display=role==='tech'?'':'none');
   const techSec=document.getElementById('techRepairSection');
   if(techSec)techSec.style.display=role==='tech'?'':'none';
-  if(isIT){document.getElementById('bellBtn').style.display='';reqNotifPerm();S.lastCheck=new Date().toISOString();S.poll=setInterval(pollNotifs,90000);}
+  if(isIT){document.getElementById('bellBtn').style.display='';reqNotifPerm();S.lastCheck=new Date().toISOString();pollNotifs();S.poll=setInterval(pollNotifs,20000);}
   showPage('appPage');loadDepts();
   loadTopbarInternetUser();
   checkURLParams();

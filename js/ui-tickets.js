@@ -33,7 +33,7 @@ function tickCard(t){
   const dev=DI[t.deviceId||'']||'⚙️';
   const desc=(t.desc||'').length>110?t.desc.slice(0,110)+'…':(t.desc||'');
   const u=S.user;
-  const isIT=u&&['it','admin','it_manager'].includes(u.role);
+  const isIT=u&&['it','tech','admin','it_manager'].includes(u.role);
   const isMgr=u&&['manager','it_manager','admin'].includes(u.role);
   const claimedBadge=t.assignedName?`<span class="assigned-by"><i class="fas fa-user-check"></i>مستلم: ${esc(t.assignedName)}</span>`:'';
   let acts='';
