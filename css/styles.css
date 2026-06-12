@@ -145,6 +145,16 @@ label{font-size:11px;font-weight:700;color:var(--sl);display:block;margin-bottom
 .app.force-mobile-view .mob-body{display:block;position:absolute;top:60px;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom,0px));width:100%;height:auto;min-height:unset;max-width:none;padding-top:0;padding-bottom:24px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .app.force-mobile-view .mob-fab{display:flex}
 
+/* CSS-only fallback: force mobile layout on narrow viewports even if JS hasn't applied
+   .force-mobile-view yet (covers race conditions on first paint / slow JS init). */
+@media(max-width:900px){
+  #appPage.active .sidebar,#appPage.active .main-area{display:none!important}
+  #appPage.active .mob-hdr2{display:flex;width:100%;max-width:none}
+  #appPage.active .mob-bnav{display:grid;width:100%;max-width:none}
+  #appPage.active .mob-body{display:block;position:fixed;top:60px;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom,0px));width:100%;height:auto;min-height:unset;max-width:none;padding-top:0;padding-bottom:24px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  #appPage.active .mob-fab{display:flex}
+}
+
 /* ── COMPONENTS ── */
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);padding:20px;margin-bottom:16px}
 .card-h{font-size:13px;font-weight:800;color:#0f172a;margin-bottom:16px;display:flex;align-items:center;gap:7px}

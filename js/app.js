@@ -89,5 +89,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginPage').classList.contains('active'))doLogin();});
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
+    let _swReloaded=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(_swReloaded)return;
+      _swReloaded=true;
+      location.reload();
+    });
   }
 });
