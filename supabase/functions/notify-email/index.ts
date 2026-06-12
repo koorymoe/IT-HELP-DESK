@@ -1,5 +1,5 @@
 // Supabase Edge Function: notify-email
-// Sends an email notification via Resend.
+// Sends a professional email notification via Resend.
 // Deploy with: supabase functions deploy notify-email
 // Requires secret: RESEND_API_KEY (supabase secrets set RESEND_API_KEY=...)
 // Optional secret: NOTIFY_FROM_EMAIL (default: IT Help Desk <onboarding@resend.dev>)
@@ -28,6 +28,9 @@ Deno.serve(async (req: Request) => {
     const to = body.to;
     const subject = body.subject || "إشعار من نظام IT Help Desk";
     const message = body.message || "";
+    const actions = body.actions || ""; // pre-built HTML for action buttons
+    const accent = body.accent || "#6366f1"; // accent color (e.g. priority color)
+    const badge = body.badge || ""; // small label, e.g. priority name
 
     if (!to) {
       return new Response(
@@ -38,21 +41,30 @@ Deno.serve(async (req: Request) => {
 
     const from = Deno.env.get("NOTIFY_FROM_EMAIL") || "IT Help Desk <onboarding@resend.dev>";
 
+    const badgeHtml = badge
+      ? `<span style="display:inline-block;background:${accent}1a;color:${accent};font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;border:1px solid ${accent}40;margin-bottom:10px">${badge}</span>`
+      : "";
+
     const html = `
-<div dir="rtl" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f1f5f9;padding:24px">
-  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08)">
-    <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:24px;text-align:center">
-      <div style="font-size:32px;margin-bottom:6px">🛠️</div>
-      <div style="color:#fff;font-size:18px;font-weight:700">IT Help Desk</div>
-    </div>
-    <div style="padding:24px">
-      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:12px">${subject}</div>
-      <div style="font-size:14px;line-height:1.8;color:#475569;background:#f8fafc;border-right:4px solid #6366f1;padding:14px 16px;border-radius:8px">${message}</div>
-      <div style="margin-top:24px;text-align:center">
-        <a href="https://koorymoe.github.io/IT-HELP-DESK/" style="display:inline-block;background:#6366f1;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">فتح النظام</a>
+<div dir="rtl" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#eef2f7;padding:28px 16px">
+  <div style="max-width:540px;margin:0 auto">
+    <div style="background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(15,23,42,.08);border:1px solid #eef0f4">
+      <div style="background:linear-gradient(135deg,${accent},#0f172a);padding:28px 24px;text-align:center;position:relative">
+        <div style="font-size:36px;margin-bottom:8px">🛠️</div>
+        <div style="color:#fff;font-size:19px;font-weight:800;letter-spacing:.3px">IT Help Desk</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:4px">نظام الدعم الفني</div>
+      </div>
+      <div style="padding:28px 24px">
+        ${badgeHtml ? `<div>${badgeHtml}</div>` : ""}
+        <div style="font-size:17px;font-weight:800;color:#0f172a;margin-bottom:14px;line-height:1.5">${subject}</div>
+        <div style="font-size:14px;line-height:2;color:#475569;background:#f8fafc;border-right:4px solid ${accent};padding:16px 18px;border-radius:10px">${message}</div>
+        ${actions ? `<div style="margin-top:22px">${actions}</div>` : ""}
+      </div>
+      <div style="background:#f8fafc;text-align:center;padding:16px;font-size:11px;color:#94a3b8;border-top:1px solid #f1f5f9">
+        إشعار تلقائي من نظام IT Help Desk &mdash; لا حاجة للرد على هذا البريد
       </div>
     </div>
-    <div style="background:#f8fafc;text-align:center;padding:14px;font-size:12px;color:#94a3b8">إشعار تلقائي من نظام IT Help Desk</div>
+    <div style="text-align:center;color:#cbd5e1;font-size:11px;margin-top:14px">© IT Help Desk</div>
   </div>
 </div>`;
 
