@@ -2,12 +2,25 @@
 /* ── API LAYER: maps old api(action,data) calls to Supabase queries ── */
 
 /* ---------- email notification helper ---------- */
-async function notifyITByEmail(subject,message){
+const TICKET_ACTION_URL=SUPABASE_URL+'/functions/v1/ticket-action';
+const APP_URL='https://koorymoe.github.io/IT-HELP-DESK/';
+async function notifyNewTicketByEmail(subject,message,ticketId){
   try{
-    const{data:itUsers}=await sb.from('users').select('email').in('role',['it','it_manager','admin']).not('email','is',null);
-    const emails=(itUsers||[]).map(u=>u.email).filter(Boolean);
-    if(!emails.length)return;
-    await sb.functions.invoke('notify-email',{body:{to:emails,subject,message}});
+    const{data:itUsers}=await sb.from('users').select('email').in('role',['it','it_manager','admin','tech']).not('email','is',null);
+    const claimBtn=email=>`<div style="margin-top:18px;text-align:center"><a href="${TICKET_ACTION_URL}?action=claim&ticket=${ticketId}&email=${encodeURIComponent(email)}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">استلام البلاغ</a></div>`;
+    for(const u of (itUsers||[])){
+      if(!u.email)continue;
+      await sb.functions.invoke('notify-email',{body:{to:u.email,subject,message:message+claimBtn(u.email)}});
+    }
+    const{data:mgrUsers}=await sb.from('users').select('email').eq('role','manager').not('email','is',null);
+    const mgrBtns=email=>`<div style="margin-top:18px;text-align:center;display:flex;gap:8px;justify-content:center">
+      <a href="${TICKET_ACTION_URL}?action=assignlist&ticket=${ticketId}&email=${encodeURIComponent(email)}" style="display:inline-block;background:#6366f1;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px">تعيين البلاغ</a>
+      <a href="${APP_URL}" style="display:inline-block;background:#94a3b8;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px">فتح النظام</a>
+    </div>`;
+    for(const u of (mgrUsers||[])){
+      if(!u.email)continue;
+      await sb.functions.invoke('notify-email',{body:{to:u.email,subject,message:message+mgrBtns(u.email)}});
+    }
   }catch(e){}
 }
 
@@ -106,7 +119,7 @@ const API={
     if(data.imageBase64){
       try{await API['tickets.attach']({ticketId:inserted.id,base64:data.imageBase64,fileName:'image.png'});}catch(e){}
     }
-    notifyITByEmail('بلاغ جديد: '+(problemType||'بلاغ'),`بلاغ جديد من ${esc(S.user.firstName+' '+S.user.lastName)} (${esc(S.user.dept||'')})<br>النوع: ${esc(problemType)}<br>الوصف: ${esc(desc)}`);
+    notifyNewTicketByEmail('بلاغ جديد: '+(problemType||'بلاغ'),`بلاغ جديد من ${esc(S.user.firstName+' '+S.user.lastName)} (${esc(S.user.dept||'')})<br>النوع: ${esc(problemType)}<br>الوصف: ${esc(desc)}`,inserted.id);
     return{success:true,message:'تم إرسال البلاغ بنجاح',ticketId:inserted.id};
   },
 
