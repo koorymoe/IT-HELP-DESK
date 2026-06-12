@@ -320,12 +320,13 @@ const API={
     const{data:rows,error}=await sb.from('internet_users').select('*').order('updated_at',{ascending:false});
     if(error)return{success:false,message:error.message};
     return{success:true,users:(rows||[]).map(u=>({
-      id:u.id,name:u.name,dept:u.dept,username:u.username,quota:u.quota,
+      id:u.id,empId:u.emp_id,name:u.name,dept:u.dept,networkLabel:u.network_label,username:u.username,quota:u.quota,
       active:u.active!==false,updatedAt:u.updated_at
     }))};
   },
   'internet.users.update':async(data)=>{
-    const upd={name:data.name,username:data.username,updated_at:new Date().toISOString()};
+    const upd={name:data.name,dept:data.dept,emp_id:data.empId,network_label:data.networkLabel,username:data.username,updated_at:new Date().toISOString()};
+    if(data.password!==undefined)upd.password=data.password;
     if(data.quota!==undefined)upd.notes=String(data.quota);
     if(data.active!==undefined)upd.active=data.active;
     let q;
@@ -335,12 +336,17 @@ const API={
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تم التحديث'};
   },
+  'internet.users.delete':async(data)=>{
+    const{error}=await sb.from('internet_users').delete().eq('id',data.id);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحذف'};
+  },
   'internet.users.search':async(data)=>{
     const empId=data.empId||'';
     const{data:user}=await sb.from('users').select('*').eq('emp_id',empId).maybeSingle();
     if(!user)return{success:false,message:'الموظف غير موجود'};
-    const{data:iu}=await sb.from('internet_users').select('*').ilike('name',`%${user.name}%`).maybeSingle();
-    return{success:true,user:mapUserRow(user),internetUser:iu||null};
+    const{data:rows}=await sb.from('internet_users').select('*').eq('emp_id',empId);
+    return{success:true,user:mapUserRow(user),internetUsers:rows||[]};
   },
 
   /* ---------- NOTIFICATIONS ---------- */
@@ -432,12 +438,12 @@ const API={
     if(!S.user)return{success:false};
     const{data:u}=await sb.from('users').select('*').eq('id',S.user.id).single();
     const{count}=await sb.from('tickets').select('id',{count:'exact',head:true}).eq('requester_id',S.user.id);
-    let internetUser=null;
-    if(u){
-      const{data:iu}=await sb.from('internet_users').select('*').ilike('name',`%${u.name}%`).maybeSingle();
-      internetUser=iu?iu.username:null;
+    let internetUsers=[];
+    if(u&&u.emp_id){
+      const{data:rows}=await sb.from('internet_users').select('id,network_label,username,dept').eq('emp_id',u.emp_id);
+      internetUsers=rows||[];
     }
-    return{success:true,internetUser,phone:u?u.phone:null,ticketCount:count||0};
+    return{success:true,internetUsers,internetUser:internetUsers[0]?internetUsers[0].username:null,phone:u?u.phone:null,ticketCount:count||0};
   },
 
   /* ---------- STATS ---------- */

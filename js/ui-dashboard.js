@@ -41,7 +41,10 @@ async function loadDeskUserHome(){
   setT('desk-user-av',ini);setT('desk-user-name',u.firstName+' '+u.lastName);setT('desk-user-dept',u.dept);
   try{
     const r=await api('user.myInfo');
-    if(r&&r.success)setT('desk-user-iuser',r.internetUser||'غير مُعيَّن');
+    if(r&&r.success){
+      const list=r.internetUsers||[];
+      setT('desk-user-iuser',list.length?list.map(iu=>(iu.network_label?iu.network_label+': ':'')+iu.username).join(' | '):'غير مُعيَّن');
+    }
   }catch(e){}
   try{
     const r=await api('stats.user');

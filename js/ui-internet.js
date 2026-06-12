@@ -3,31 +3,44 @@
 
 async function loadInternetUsers(){
   const el=document.getElementById('iuTbody');if(!el)return;
-  el.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px">'+skel(2)+'</td></tr>';
+  el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px">'+skel(2)+'</td></tr>';
   try{
     const r=await api('internet.users.list');
-    if(!r||!r.success){el.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;opacity:.5">فشل التحميل</td></tr>';return;}
+    if(!r||!r.success){el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;opacity:.5">فشل التحميل</td></tr>';return;}
     S.inetUsers=r.users||[];
     renderIUsers(S.inetUsers);
-  }catch(e){el.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;opacity:.5">خطأ</td></tr>';}
+  }catch(e){el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;opacity:.5">خطأ</td></tr>';}
 }
 
 function filterIUsers(){
   const sf=(document.getElementById('iu-q')||{}).value?.trim().toLowerCase()||'';
-  renderIUsers((S.inetUsers||[]).filter(u=>!sf||((u.name||'')+(u.username||'')).toLowerCase().includes(sf)));
+  renderIUsers((S.inetUsers||[]).filter(u=>!sf||((u.name||'')+(u.username||'')+(u.empId||'')+(u.networkLabel||'')).toLowerCase().includes(sf)));
 }
 
 function renderIUsers(users){
   const el=document.getElementById('iuTbody');if(!el)return;
-  if(!users.length){el.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;opacity:.5">لا يوجد مستخدمين</td></tr>';return;}
+  if(!users.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;opacity:.5">لا يوجد مستخدمين</td></tr>';return;}
   el.innerHTML=users.map(u=>`<tr>
     <td style="font-family:monospace;font-size:.85rem">${esc(u.empId||'—')}</td>
     <td>${esc(u.name||'—')}</td>
     <td>${esc(u.dept||'—')}</td>
+    <td style="font-family:monospace" dir="ltr">${esc(u.networkLabel||'—')}</td>
     <td style="font-family:monospace" dir="ltr">${esc(u.username||'—')}</td>
     <td style="font-size:.78rem;opacity:.6">${esc(u.updatedAt||'—')}</td>
-    <td><span class="badge" style="background:${u.active?'var(--gr-l)':'var(--re-l)'};color:${u.active?'var(--gr-d)':'#b91c1c'}">${u.active?'نشط':'موقوف'}</span></td>
+    <td>
+      <span class="badge" style="background:${u.active?'var(--gr-l)':'var(--re-l)'};color:${u.active?'var(--gr-d)':'#b91c1c'}">${u.active?'نشط':'موقوف'}</span>
+      <button class="btn-sm btn-danger" onclick="deleteIUser('${esc(u.id)}')" title="حذف"><i class="fas fa-trash"></i></button>
+    </td>
   </tr>`).join('');
+}
+
+async function deleteIUser(id){
+  if(!confirm('حذف هذا الحساب؟'))return;
+  try{
+    const r=await api('internet.users.delete',{id});
+    if(r&&r.success){toast('✅ '+r.message);loadInternetUsers();}
+    else toast(r?r.message:'خطأ',true);
+  }catch(e){toast('خطأ',true);}
 }
 
 async function searchInternetUser(){
@@ -38,11 +51,14 @@ async function searchInternetUser(){
   try{
     const r=await api('internet.users.search',{empId});
     if(!r||!r.success){el.innerHTML=`<div class="empty"><i class="fas fa-search"></i><h3>${esc(r?r.message:'غير موجود')}</h3></div>`;return;}
-    const iu=r.internetUser;
+    const list=r.internetUsers||[];
+    const accountsHtml=list.length
+      ? list.map(iu=>`<div class="ig-i"><label>${esc(iu.network_label||'حساب')}</label><strong style="font-family:monospace" dir="ltr">${esc(iu.username||'—')}</strong></div>`).join('')
+      : `<div class="ig-i"><label>يوزر الإنترنت</label><strong>غير مُعيَّن</strong></div>`;
     el.innerHTML=`<div class="ig" style="margin-top:12px">
       <div class="ig-i"><label>الاسم</label><strong>${esc(r.user.firstName)} ${esc(r.user.lastName)}</strong></div>
       <div class="ig-i"><label>القسم</label><strong>${esc(r.user.dept||'—')}</strong></div>
-      <div class="ig-i"><label>يوزر الإنترنت</label><strong style="font-family:monospace" dir="ltr">${iu?esc(iu.username):'غير مُعيَّن'}</strong></div>
+      ${accountsHtml}
     </div>`;
   }catch(e){el.innerHTML='<div class="empty"><i class="fas fa-exclamation-circle"></i><h3>خطأ</h3></div>';}
 }
@@ -50,13 +66,13 @@ async function searchInternetUser(){
 async function subInternetUser(){
   const empId=document.getElementById('iu-eid').value.trim();
   const username=document.getElementById('iu-user').value.trim();
+  const networkLabel=(document.getElementById('iu-net')||{}).value?.trim()||'';
   if(!empId||!username){toast('يرجى ملء جميع الحقول',true);return;}
   try{
     const{data:user}=await sb.from('users').select('*').eq('emp_id',empId).maybeSingle();
     if(!user){toast('الموظف غير موجود',true);return;}
-    const{data:iu}=await sb.from('internet_users').select('id').ilike('name',`%${user.name}%`).maybeSingle();
-    const r=await api('internet.users.update',{id:iu?iu.id:null,name:user.name,dept:user.dept,username});
-    if(r&&r.success){toast('✅ '+r.message);['iu-eid','iu-user'].forEach(id=>document.getElementById(id).value='');loadInternetUsers();}
+    const r=await api('internet.users.update',{empId,name:user.name,dept:user.dept,networkLabel,username});
+    if(r&&r.success){toast('✅ '+r.message);['iu-eid','iu-user','iu-net'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});loadInternetUsers();}
     else toast(r?r.message:'خطأ',true);
   }catch(e){toast('خطأ',true);}
 }

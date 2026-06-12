@@ -115,12 +115,13 @@ function enterApp(){
 async function loadTopbarInternetUser(){
   try{
     const r=await api('user.myInfo');
-    if(r&&r.success&&r.internetUser){
+    if(r&&r.success&&r.internetUsers&&r.internetUsers.length){
       const badge=document.getElementById('tb-iuser');
       const val=document.getElementById('tb-iuser-val');
+      const txt=r.internetUsers.map(iu=>(iu.network_label?iu.network_label+': ':'')+iu.username).join(' | ');
       if(badge)badge.style.display='flex';
-      if(val)val.textContent=r.internetUser;
-      document.querySelectorAll('.user-internet-badge').forEach(el=>el.textContent=r.internetUser);
+      if(val)val.textContent=txt;
+      document.querySelectorAll('.user-internet-badge').forEach(el=>el.textContent=txt);
     }
   }catch(e){}
 }
@@ -152,7 +153,13 @@ async function loadMyInfo(){
   setT('inf-internet','⏳ جارٍ التحميل...');setT('inf-tickets','—');
   try{
     const r=await api('user.myInfo');
-    if(r&&r.success){setT('inf-internet',r.internetUser||'غير مُعيَّن');setT('inf-tickets',r.ticketCount||'0');if(r.phone)setT('inf-phone',r.phone);}
+    if(r&&r.success){
+      const list=r.internetUsers||[];
+      const txt=list.length
+        ? list.map(iu=>'حساب الإنترنت'+(iu.network_label?' ('+iu.network_label+')':'')+': '+iu.username).join(' | ')
+        : 'غير مُعيَّن';
+      setT('inf-internet',txt);setT('inf-tickets',r.ticketCount||'0');if(r.phone)setT('inf-phone',r.phone);
+    }
     else{setT('inf-internet','غير مُعيَّن');}
   }catch(e){setT('inf-internet','غير متاح');}
 }

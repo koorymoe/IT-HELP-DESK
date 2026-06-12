@@ -11,7 +11,7 @@ async function loadGuidelinesTab(){
 }
 function renderGuideList(items){
   const el=document.getElementById('guideList');if(!el)return;
-  const isAdmin=S.user&&['admin','it_manager'].includes(S.user.role);
+  const isAdmin=S.user&&['admin','it_manager','it'].includes(S.user.role);
   const addBtn=document.getElementById('addGuideBtn');if(addBtn)addBtn.style.display=isAdmin?'':'none';
   if(!items.length){el.innerHTML='<p style="opacity:.5;text-align:center;padding:32px">لا يوجد إرشادات بعد</p>';return;}
   el.innerHTML=items.map(i=>`

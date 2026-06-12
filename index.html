@@ -285,12 +285,12 @@
 </div>
 <div class="card" style="border:2px solid var(--cy);margin-bottom:16px">
 <div class="card-h"><i class="fas fa-edit" style="color:var(--cy)"></i>تعديل يوزر إنترنت يدوياً</div>
-<div class="fg"><div class="fg-r"><label>رقم البصمة *</label><input id="iu-eid" placeholder="EMP-001" autocapitalize="characters"/></div><div class="fg-r"><label>يوزر الإنترنت الصحيح *</label><input id="iu-user" placeholder="ali.ahmed" dir="ltr"/></div></div>
+<div class="fg"><div class="fg-r"><label>رقم البصمة *</label><input id="iu-eid" placeholder="EMP-001" autocapitalize="characters"/></div><div class="fg-r"><label>الشبكة</label><input id="iu-net" placeholder="HA-11" dir="ltr"/></div><div class="fg-r"><label>يوزر الإنترنت الصحيح *</label><input id="iu-user" placeholder="ali.ahmed" dir="ltr"/></div></div>
 <div class="f-acts"><button class="btn btn-w" onclick="subInternetUser()"><i class="fas fa-save"></i>تصحيح اليوزر</button></div>
 </div>
 <div class="card">
 <div class="card-h" style="justify-content:space-between"><span><i class="fas fa-users-cog"></i>قائمة يوزرات الإنترنت</span><div style="display:flex;gap:8px"><input id="iu-q" placeholder="🔍 بحث..." style="width:160px;padding:6px 10px;font-size:11px" oninput="filterIUsers()"/><button class="btn btn-g btn-sm" onclick="loadInternetUsers()"><i class="fas fa-sync"></i></button></div></div>
-<div class="tw"><table><thead><tr><th>رقم البصمة</th><th>الاسم</th><th>القسم</th><th>يوزر الإنترنت</th><th>آخر تحديث</th><th>إجراء</th></tr></thead><tbody id="iuTbody"></tbody></table></div>
+<div class="tw"><table><thead><tr><th>رقم البصمة</th><th>الاسم</th><th>القسم</th><th>الشبكة</th><th>يوزر الإنترنت</th><th>آخر تحديث</th><th>إجراء</th></tr></thead><tbody id="iuTbody"></tbody></table></div>
 </div>
 </div>
 
