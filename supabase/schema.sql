@@ -85,6 +85,8 @@ create table public.guidelines (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   content text,
+  icon text,
+  priority text,
   created_at timestamptz not null default now()
 );
 

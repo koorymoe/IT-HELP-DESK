@@ -288,8 +288,9 @@ const API={
     const{data:cur,error:e1}=await supabase.from('devices').select('*').eq('id',data.deviceId).single();
     if(e1||!cur)return{success:false,message:'الجهاز غير موجود'};
     const hist=cur.history||[];
-    hist.push({action:'تمت الصيانة',by:S.user?(S.user.firstName+' '+S.user.lastName):'',time:new Date().toLocaleString('ar-EG'),notes:data.repairNotes||data.work});
-    const{error}=await supabase.from('devices').update({status:'أُنجز — بانتظار IT',history:hist,updated_at:new Date().toISOString()}).eq('id',data.deviceId);
+    hist.push({action:'تمت الصيانة',by:S.user?(S.user.firstName+' '+S.user.lastName):'',time:new Date().toLocaleString('ar-EG'),notes:data.repairNotes||data.work,result:data.result,ready:data.ready});
+    const newStatus=data.ready==='no'?'بانتظار قطع غيار':'أُنجز — بانتظار IT';
+    const{error}=await supabase.from('devices').update({status:newStatus,history:hist,updated_at:new Date().toISOString()}).eq('id',data.deviceId);
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تم تسجيل إتمام الإصلاح'};
   },
@@ -308,7 +309,7 @@ const API={
     const{data:cur,error:e1}=await supabase.from('devices').select('*').eq('id',data.deviceId).single();
     if(e1||!cur)return{success:false,message:'الجهاز غير موجود'};
     const hist=cur.history||[];
-    hist.push({action:'تسليم للموظف',by:S.user?(S.user.firstName+' '+S.user.lastName):'',time:new Date().toLocaleString('ar-EG'),notes:data.deliveryNotes});
+    hist.push({action:'تسليم للموظف',by:S.user?(S.user.firstName+' '+S.user.lastName):'',time:new Date().toLocaleString('ar-EG'),notes:data.deliveryNotes,condition:data.condition});
     const{error}=await supabase.from('devices').update({status:'مُسلَّم',history:hist,updated_at:new Date().toISOString()}).eq('id',data.deviceId);
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تم تسليم الجهاز للموظف'};
@@ -373,12 +374,12 @@ const API={
     return{success:true,guidelines:rows||[]};
   },
   'guidelines.add':async(data)=>{
-    const{error}=await supabase.from('guidelines').insert({title:data.title,content:data.content});
+    const{error}=await supabase.from('guidelines').insert({title:data.title,content:data.content,icon:data.icon,priority:data.priority});
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تمت الإضافة'};
   },
   'guidelines.update':async(data)=>{
-    const{error}=await supabase.from('guidelines').update({title:data.title,content:data.content}).eq('id',data.id);
+    const{error}=await supabase.from('guidelines').update({title:data.title,content:data.content,icon:data.icon,priority:data.priority}).eq('id',data.id);
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تم التعديل'};
   },
@@ -509,7 +510,7 @@ const API={
 };
 
 function mapDeviceStage(status){
-  const map={'عند IT':'checkin','عند الفني':'sent_tech','أُنجز — بانتظار IT':'repaired','جاهز للتسليم':'received_back','مُسلَّم':'delivered'};
+  const map={'عند IT':'checkin','عند الفني':'sent_tech','بانتظار قطع غيار':'sent_tech','أُنجز — بانتظار IT':'repaired','جاهز للتسليم':'received_back','مُسلَّم':'delivered'};
   return map[status]||'checkin';
 }
 
