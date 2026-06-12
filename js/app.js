@@ -87,4 +87,7 @@ function computeOverdue(t){
 document.addEventListener('DOMContentLoaded',()=>{
   checkSession();
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginPage').classList.contains('active'))doLogin();});
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
+  }
 });

@@ -144,6 +144,25 @@ function checkURLParams(){
 }
 
 /* ── MY INFO ── */
+const MYINFO_CACHE_KEY='it_helpdesk_myinfo_cache';
+
+function saveMyInfoCache(empId,data){
+  try{localStorage.setItem(MYINFO_CACHE_KEY,JSON.stringify({empId,data,ts:Date.now()}));}catch(e){}
+}
+function loadMyInfoCache(empId){
+  try{
+    const r=localStorage.getItem(MYINFO_CACHE_KEY);
+    if(!r)return null;
+    const parsed=JSON.parse(r);
+    if(parsed.empId!==empId)return null;
+    return parsed;
+  }catch(e){return null;}
+}
+function showOfflineInfoBadge(show){
+  const el=document.getElementById('inf-offline-badge');
+  if(el)el.style.display=show?'inline-flex':'none';
+}
+
 async function loadMyInfo(){
   const u=S.user;if(!u)return;
   const ini=(u.firstName[0]||'')+(u.lastName[0]||'');
@@ -151,6 +170,7 @@ async function loadMyInfo(){
   setT('inf-av',ini);setT('inf-name',u.firstName+' '+u.lastName);setT('inf-role',ROLE_L[u.role]);
   setT('inf-id',u.empId);setT('inf-dept',u.dept);setT('inf-phone',u.phone||'—');
   setT('inf-internet','⏳ جارٍ التحميل...');setT('inf-tickets','—');
+  showOfflineInfoBadge(false);
   try{
     const r=await api('user.myInfo');
     if(r&&r.success){
@@ -159,7 +179,18 @@ async function loadMyInfo(){
         ? list.map(iu=>'حساب الإنترنت'+(iu.network_label?' ('+iu.network_label+')':'')+': '+iu.username).join(' | ')
         : 'غير مُعيَّن';
       setT('inf-internet',txt);setT('inf-tickets',r.ticketCount||'0');if(r.phone)setT('inf-phone',r.phone);
+      saveMyInfoCache(u.empId,{internet:txt,tickets:r.ticketCount||'0',phone:r.phone||u.phone});
     }
     else{setT('inf-internet','غير مُعيَّن');}
-  }catch(e){setT('inf-internet','غير متاح');}
+  }catch(e){
+    const cached=loadMyInfoCache(u.empId);
+    if(cached&&cached.data){
+      setT('inf-internet',cached.data.internet);
+      setT('inf-tickets',cached.data.tickets);
+      if(cached.data.phone)setT('inf-phone',cached.data.phone);
+      showOfflineInfoBadge(true);
+    }else{
+      setT('inf-internet','غير متاح');
+    }
+  }
 }
