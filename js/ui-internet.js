@@ -52,9 +52,9 @@ async function subInternetUser(){
   const username=document.getElementById('iu-user').value.trim();
   if(!empId||!username){toast('يرجى ملء جميع الحقول',true);return;}
   try{
-    const{data:user}=await supabase.from('users').select('*').eq('emp_id',empId).maybeSingle();
+    const{data:user}=await sb.from('users').select('*').eq('emp_id',empId).maybeSingle();
     if(!user){toast('الموظف غير موجود',true);return;}
-    const{data:iu}=await supabase.from('internet_users').select('id').ilike('name',`%${user.name}%`).maybeSingle();
+    const{data:iu}=await sb.from('internet_users').select('id').ilike('name',`%${user.name}%`).maybeSingle();
     const r=await api('internet.users.update',{id:iu?iu.id:null,name:user.name,dept:user.dept,username});
     if(r&&r.success){toast('✅ '+r.message);['iu-eid','iu-user'].forEach(id=>document.getElementById(id).value='');loadInternetUsers();}
     else toast(r?r.message:'خطأ',true);

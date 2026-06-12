@@ -36,7 +36,7 @@ async function doLogin(){
   if(!pw){showE('ادخل الرمز السري');return;}
   btn.innerHTML='<span class="spin"></span> جارٍ التحقق...';btn.disabled=true;
   try{
-    const{data,error}=await supabase.from('users').select('*').eq('emp_id',empId).maybeSingle();
+    const{data,error}=await sb.from('users').select('*').eq('emp_id',empId).maybeSingle();
     if(error||!data){showE('بيانات الدخول غير صحيحة');return;}
     if(data.password!==pw){showE('بيانات الدخول غير صحيحة');return;}
     if(data.active===false){showE('الحساب غير مفعل');return;}
