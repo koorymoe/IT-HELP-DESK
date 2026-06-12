@@ -1,6 +1,11 @@
 'use strict';
 /* ── AUTH (custom emp_id + password against `users` table) ── */
 
+async function sha256Hex(text){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
 function splitName(name){
   name=(name||'').trim();
   if(!name)return{firstName:'',lastName:''};
@@ -38,7 +43,8 @@ async function doLogin(){
   try{
     const{data,error}=await sb.from('users').select('*').eq('emp_id',empId).maybeSingle();
     if(error||!data){showE('بيانات الدخول غير صحيحة');return;}
-    if(data.password!==pw){showE('بيانات الدخول غير صحيحة');return;}
+    const pwHash=await sha256Hex(pw);
+    if(data.password!==pw&&data.password!==pwHash){showE('بيانات الدخول غير صحيحة');return;}
     if(data.active===false){showE('الحساب غير مفعل');return;}
     S.user=mapUserRow(data);
     saveSession(S.user);
