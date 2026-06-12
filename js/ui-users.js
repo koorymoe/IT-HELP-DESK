@@ -28,7 +28,7 @@ function renderUsers(users){
     <td>${esc(u.department||u.dept||'—')}</td>
     <td><span class="badge" style="background:var(--in-l);color:var(--in)">${ROLE_L[u.role]||u.role}</span></td>
     <td><span class="badge" style="background:${u.active?'var(--gr-l)':'var(--re-l)'};color:${u.active?'var(--gr-d)':'#b91c1c'}">${u.active?'نشط':'موقوف'}</span></td>
-    <td style="font-size:.78rem;opacity:.6">${esc(u.lastLogin||'—')}</td>
+    <td style="font-size:.78rem;opacity:.6">${u.lastLogin?new Date(u.lastLogin).toLocaleString('ar-IQ',{dateStyle:'short',timeStyle:'short'}):'—'}</td>
     <td>
       <button class="btn-sm" onclick="openPwModal('${esc(u.id)}','${esc(u.firstName)} ${esc(u.lastName)}')" title="تغيير كلمة المرور"><i class="fas fa-key"></i></button>
       <button class="btn-sm" onclick="togUser('${esc(u.id)}',${!u.active})" title="${u.active?'إيقاف':'تفعيل'}"><i class="fas fa-${u.active?'ban':'check'}"></i></button>
