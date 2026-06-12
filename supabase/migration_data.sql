@@ -2,6 +2,9 @@
 -- Data migration from old Google Sheets system
 -- ============================================================
 
+-- ---------- Users: last_login column ----------
+alter table public.users add column if not exists last_login timestamptz;
+
 -- ---------- Departments ----------
 insert into public.departments (name) values
   ('الموارد البشرية'),

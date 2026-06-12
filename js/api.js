@@ -1,6 +1,16 @@
 'use strict';
 /* ── API LAYER: maps old api(action,data) calls to Supabase queries ── */
 
+/* ---------- email notification helper ---------- */
+async function notifyITByEmail(subject,message){
+  try{
+    const{data:itUsers}=await sb.from('users').select('email').in('role',['it','it_manager','admin']).not('email','is',null);
+    const emails=(itUsers||[]).map(u=>u.email).filter(Boolean);
+    if(!emails.length)return;
+    await sb.functions.invoke('notify-email',{body:{to:emails,subject,message}});
+  }catch(e){}
+}
+
 /* ---------- mapping helpers ---------- */
 function ticketRowToObj(t,usersById){
   usersById=usersById||{};
@@ -96,6 +106,7 @@ const API={
     if(data.imageBase64){
       try{await API['tickets.attach']({ticketId:inserted.id,base64:data.imageBase64,fileName:'image.png'});}catch(e){}
     }
+    notifyITByEmail('بلاغ جديد: '+(problemType||'بلاغ'),`بلاغ جديد من ${esc(S.user.firstName+' '+S.user.lastName)} (${esc(S.user.dept||'')})<br>النوع: ${esc(problemType)}<br>الوصف: ${esc(desc)}`);
     return{success:true,message:'تم إرسال البلاغ بنجاح',ticketId:inserted.id};
   },
 

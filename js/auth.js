@@ -48,6 +48,7 @@ async function doLogin(){
     if(data.active===false){showE('الحساب غير مفعل');return;}
     S.user=mapUserRow(data);
     saveSession(S.user);
+    sb.from('users').update({last_login:new Date().toISOString()}).eq('id',data.id).then(()=>{});
     enterApp();
   }catch(e){showE('خطأ في الاتصال — حاول مجدداً');}
   finally{btn.innerHTML='<i class="fas fa-sign-in-alt" style="margin-left:6px"></i>تسجيل الدخول';btn.disabled=false;}
