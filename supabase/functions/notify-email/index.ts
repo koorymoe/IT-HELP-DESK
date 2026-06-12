@@ -38,6 +38,24 @@ Deno.serve(async (req: Request) => {
 
     const from = Deno.env.get("NOTIFY_FROM_EMAIL") || "IT Help Desk <onboarding@resend.dev>";
 
+    const html = `
+<div dir="rtl" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f1f5f9;padding:24px">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08)">
+    <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:24px;text-align:center">
+      <div style="font-size:32px;margin-bottom:6px">🛠️</div>
+      <div style="color:#fff;font-size:18px;font-weight:700">IT Help Desk</div>
+    </div>
+    <div style="padding:24px">
+      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:12px">${subject}</div>
+      <div style="font-size:14px;line-height:1.8;color:#475569;background:#f8fafc;border-right:4px solid #6366f1;padding:14px 16px;border-radius:8px">${message}</div>
+      <div style="margin-top:24px;text-align:center">
+        <a href="https://koorymoe.github.io/IT-HELP-DESK/" style="display:inline-block;background:#6366f1;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">فتح النظام</a>
+      </div>
+    </div>
+    <div style="background:#f8fafc;text-align:center;padding:14px;font-size:12px;color:#94a3b8">إشعار تلقائي من نظام IT Help Desk</div>
+  </div>
+</div>`;
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -48,7 +66,7 @@ Deno.serve(async (req: Request) => {
         from,
         to: Array.isArray(to) ? to : [to],
         subject,
-        html: `<div dir="rtl" style="font-family:sans-serif">${message}</div>`,
+        html,
       }),
     });
 
