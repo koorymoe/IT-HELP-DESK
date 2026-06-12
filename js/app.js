@@ -62,14 +62,15 @@ function fileToBase64(file){
   });
 }
 let _charts={};
-function mkChart(id,type,labels,data,colors){
+function mkChart(id,type,labels,data,colors,label){
   const el=document.getElementById(id);if(!el)return;
   if(_charts[id]){_charts[id].destroy();delete _charts[id];}
   try{
+    const showLegend=type==='pie'||type==='doughnut';
     _charts[id]=new Chart(el,{
       type,
-      data:{labels,datasets:[{data,backgroundColor:colors,borderColor:type==='line'?colors[0]:'transparent',fill:type==='line',tension:.4,borderWidth:2}]},
-      options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'Cairo'},color:'#94a3b8'}}},scales:type==='line'||type==='bar'?{x:{ticks:{color:'#94a3b8',font:{family:'Cairo'}}},y:{ticks:{color:'#94a3b8',font:{family:'Cairo'}}}}:{}}
+      data:{labels,datasets:[{label:label||'',data,backgroundColor:colors,borderColor:type==='line'?colors[0]:'transparent',fill:type==='line',tension:.4,borderWidth:2}]},
+      options:{responsive:true,plugins:{legend:{display:showLegend,position:'bottom',labels:{font:{family:'Cairo'},color:'#94a3b8'}}},scales:type==='line'||type==='bar'?{x:{ticks:{color:'#94a3b8',font:{family:'Cairo'}}},y:{ticks:{color:'#94a3b8',font:{family:'Cairo'}}}}:{}}
     });
   }catch(e){}
 }
