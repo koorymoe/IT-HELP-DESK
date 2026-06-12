@@ -1,6 +1,22 @@
 'use strict';
 /* ── API LAYER: maps old api(action,data) calls to Supabase queries ── */
 
+/* ---------- push notification helper ---------- */
+async function sendPush(userIds,title,message){
+  try{
+    if(!userIds||!userIds.length)return;
+    await sb.functions.invoke('send-push',{body:{userIds,title,message}});
+  }catch(e){}
+}
+async function notifyUsers(userIds,message,ticketId){
+  try{
+    if(!userIds||!userIds.length)return;
+    const rows=userIds.map(uid=>({user_id:uid,ticket_id:ticketId||null,message}));
+    await sb.from('notifications').insert(rows);
+    sendPush(userIds,'🔔 IT Help Desk',message);
+  }catch(e){}
+}
+
 /* ---------- email notification helper ---------- */
 const TICKET_ACTION_URL=SUPABASE_URL+'/functions/v1/ticket-action';
 const APP_URL='https://koorymoe.github.io/IT-HELP-DESK/';
@@ -120,6 +136,8 @@ const API={
       try{await API['tickets.attach']({ticketId:inserted.id,base64:data.imageBase64,fileName:'image.png'});}catch(e){}
     }
     notifyNewTicketByEmail('بلاغ جديد: '+(problemType||'بلاغ'),`بلاغ جديد من ${esc(S.user.firstName+' '+S.user.lastName)} (${esc(S.user.dept||'')})<br>النوع: ${esc(problemType)}<br>الوصف: ${esc(desc)}`,inserted.id);
+    const{data:notifyTargets}=await sb.from('users').select('id').in('role',['it','it_manager','admin','tech','manager']);
+    notifyUsers((notifyTargets||[]).map(u=>u.id),`بلاغ جديد: ${problemType||'بلاغ'} من ${S.user.firstName} ${S.user.lastName}`,inserted.id);
     return{success:true,message:'تم إرسال البلاغ بنجاح',ticketId:inserted.id};
   },
 
@@ -388,12 +406,17 @@ const API={
   },
   'notifications.broadcastClaim':async(data)=>{
     // notify other IT staff that a ticket was claimed
-    const{data:itUsers}=await sb.from('users').select('id').in('role',['it','it_manager','admin']);
-    const rows=(itUsers||[]).filter(u=>u.id!==S.user.id).map(u=>({user_id:u.id,ticket_id:data.ticketId,message:(data.claimerName||'')+' استلم البلاغ '+data.ticketId}));
-    if(rows.length)await sb.from('notifications').insert(rows);
+    const{data:itUsers}=await sb.from('users').select('id').in('role',['it','it_manager','admin','tech']);
+    const ids=(itUsers||[]).filter(u=>u.id!==S.user.id).map(u=>u.id);
+    notifyUsers(ids,(data.claimerName||'')+' استلم البلاغ '+data.ticketId,data.ticketId);
     return{success:true};
   },
   'notifications.broadcastAssign':async(data)=>{
+    // notify the assigned staff member + other IT staff
+    const{data:itUsers}=await sb.from('users').select('id').in('role',['it','it_manager','admin','tech']);
+    const otherIds=(itUsers||[]).map(u=>u.id).filter(id=>id!==data.assigneeId);
+    if(data.assigneeId)notifyUsers([data.assigneeId],`تم تعيينك للبلاغ ${data.ticketId}`,data.ticketId);
+    notifyUsers(otherIds,`تم تعيين ${data.assigneeName||'موظف'} للبلاغ ${data.ticketId}`,data.ticketId);
     return{success:true};
   },
 

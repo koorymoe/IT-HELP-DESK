@@ -1,7 +1,34 @@
 'use strict';
 /* ── NOTIFICATIONS ── */
 const PRI_C={'عاجلة':'b-ur','عالية':'b-hi','متوسطة':'b-md','منخفضة':'b-lo'};
-function reqNotifPerm(){if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();}
+const VAPID_PUBLIC_KEY='BEXptNgGMu_wgpAwY3c31NO6jLlJgVMsLh4DiHKfolBP84xUpFGzjBmfdN9987-Bg6IX5hKw9JAbseDjDC5JQj8';
+function urlBase64ToUint8Array(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(base64);
+  const arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+async function subscribePush(){
+  try{
+    if(!S.user||!('serviceWorker' in navigator)||!('PushManager' in window))return;
+    if(Notification.permission!=='granted')return;
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+    const json=sub.toJSON();
+    await sb.from('push_subscriptions').upsert({user_id:S.user.id,endpoint:json.endpoint,subscription:json},{onConflict:'endpoint'});
+  }catch(e){}
+}
+function reqNotifPerm(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{if(p==='granted')subscribePush();});
+  }else if(Notification.permission==='granted'){
+    subscribePush();
+  }
+}
 function showBrNotif(title,body){
   if('Notification' in window&&Notification.permission==='granted'){
     new Notification(title,{body,icon:'https://fonts.gstatic.com/s/i/materialicons/notifications/v4/24px.svg'});

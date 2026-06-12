@@ -140,7 +140,8 @@ async function subAsgn(){
     const r=await api('tickets.assign',{ticketId:S.tid,assigneeId:aid});
     if(r&&r.success){
       toast('✅ '+r.message);closeM('ovAsgn');
-      try{await api('notifications.broadcastAssign',{ticketId:S.tid});}catch(e2){}
+      const aname=document.getElementById('asgn-sl').selectedOptions[0]?.textContent.trim();
+      try{await api('notifications.broadcastAssign',{ticketId:S.tid,assigneeId:aid,assigneeName:aname});}catch(e2){}
       cc();loadTickets();
     }else toast(r?r.message:'خطأ',true);
   }catch(e){toast('خطأ',true);}

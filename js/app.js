@@ -89,11 +89,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   checkSession();
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginPage').classList.contains('active'))doLogin();});
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(regs=>{
-      regs.forEach(r=>r.unregister());
-    });
-    if(window.caches&&caches.keys){
-      caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));
-    }
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
 });
