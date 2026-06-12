@@ -1,0 +1,519 @@
+'use strict';
+/* ── API LAYER: maps old api(action,data) calls to Supabase queries ── */
+
+/* ---------- mapping helpers ---------- */
+function ticketRowToObj(t,usersById){
+  usersById=usersById||{};
+  const assigned=t.assigned_id?usersById[t.assigned_id]:null;
+  const requester=t.requester_id?usersById[t.requester_id]:null;
+  return{
+    id:t.id,
+    title:t.title,
+    desc:t.desc,
+    problemType:t.problem_type,
+    priority:t.priority,
+    status:t.status,
+    requesterId:t.requester_id,
+    requesterName:t.requester_name||(requester?(requester.firstName+' '+requester.lastName):''),
+    requesterDept:t.requester_dept,
+    assignedId:t.assigned_id,
+    assignedName:t.assigned_name||(assigned?(assigned.firstName+' '+assigned.lastName):''),
+    solution:t.notes,
+    notes:t.notes,
+    attachments:t.attachments||[],
+    history:t.history||[],
+    createdAt:t.created_at,
+    updatedAt:t.updated_at,
+    solvedAt:t.solved_at,
+    deviceId:(t.attachments&&t.attachments.deviceId)||t.device_type||'',
+    isOverdue:computeOverdue({status:t.status,createdAt:t.created_at})
+  };
+}
+
+function nowHistoryEntry(action,by){
+  return{action,by,time:new Date().toLocaleString('ar-EG')};
+}
+
+async function getUsersById(){
+  const{data}=await supabase.from('users').select('id,name,emp_id,role,dept');
+  const map={};
+  (data||[]).forEach(u=>{const{firstName,lastName}=splitName(u.name);map[u.id]={firstName,lastName,empId:u.emp_id,role:u.role,dept:u.dept};});
+  return map;
+}
+
+/* ---------- API implementations ---------- */
+const API={
+
+  /* AUTH (handled mostly in auth.js, but keep for compat) */
+  'auth.login':async()=>({success:false,message:'use direct login'}),
+  'auth.check':async()=>({success:!!S.user,user:S.user}),
+
+  /* ---------- TICKETS ---------- */
+  'tickets.list':async(data)=>{
+    data=data||{};
+    let q=supabase.from('tickets').select('*').order('created_at',{ascending:false});
+    if(data.status&&data.status!=='all')q=q.eq('status',data.status);
+    if(data.priority&&data.priority!=='all')q=q.eq('priority',data.priority);
+    const{data:rows,error}=await q;
+    if(error)return{success:false,message:error.message};
+    const usersById=await getUsersById();
+    let tickets=(rows||[]).map(t=>ticketRowToObj(t,usersById));
+    if(data.q){
+      const ql=data.q.toLowerCase();
+      tickets=tickets.filter(t=>(t.desc||'').toLowerCase().includes(ql)||(t.problemType||'').toLowerCase().includes(ql)||(t.requesterName||'').toLowerCase().includes(ql)||(t.id||'').toLowerCase().includes(ql));
+    }
+    if(data.overdueOnly)tickets=tickets.filter(t=>t.isOverdue);
+    return{success:true,tickets};
+  },
+
+  'tickets.myList':async()=>{
+    if(!S.user)return{success:false,message:'غير مسجل دخول'};
+    const{data:rows,error}=await supabase.from('tickets').select('*').eq('requester_id',S.user.id).order('created_at',{ascending:false});
+    if(error)return{success:false,message:error.message};
+    const usersById=await getUsersById();
+    return{success:true,tickets:(rows||[]).map(t=>ticketRowToObj(t,usersById))};
+  },
+
+  'tickets.create':async(data)=>{
+    data=data||{};
+    if(!S.user)return{success:false,message:'غير مسجل دخول'};
+    const desc=data.description||data.desc||data.problem||'';
+    const problemType=data.problemType||data.problem||'';
+    const row={
+      title:problemType||'بلاغ جديد',
+      desc:desc,
+      problem_type:problemType,
+      priority:data.priority||'متوسطة',
+      status:'جديدة',
+      requester_id:S.user.id,
+      requester_name:S.user.firstName+' '+S.user.lastName,
+      requester_dept:S.user.dept,
+      attachments:data.deviceId?{deviceId:data.deviceId}:[],
+      history:[nowHistoryEntry('تم إنشاء البلاغ',S.user.firstName+' '+S.user.lastName)]
+    };
+    const{data:inserted,error}=await supabase.from('tickets').insert(row).select().single();
+    if(error)return{success:false,message:error.message};
+    if(data.imageBase64){
+      try{await API['tickets.attach']({ticketId:inserted.id,base64:data.imageBase64,fileName:'image.png'});}catch(e){}
+    }
+    return{success:true,message:'تم إرسال البلاغ بنجاح',ticketId:inserted.id};
+  },
+
+  'tickets.update':async(data)=>{
+    data=data||{};
+    const{data:cur,error:e1}=await supabase.from('tickets').select('*').eq('id',data.ticketId).single();
+    if(e1||!cur)return{success:false,message:'البلاغ غير موجود'};
+    const upd={updated_at:new Date().toISOString()};
+    const hist=cur.history||[];
+    if(data.status){upd.status=data.status;hist.push(nowHistoryEntry('تغيير الحالة إلى '+data.status,S.user?(S.user.firstName+' '+S.user.lastName):''));if(data.status==='تم حل البلاغ')upd.solved_at=new Date().toISOString();}
+    if(data.solution!==undefined&&data.solution!==''){upd.notes=data.solution;hist.push(nowHistoryEntry('تم تسجيل حل: '+data.solution,S.user?(S.user.firstName+' '+S.user.lastName):''));}
+    else if(data.notes!==undefined&&data.notes!==''){upd.notes=data.notes;}
+    upd.history=hist;
+    const{error}=await supabase.from('tickets').update(upd).eq('id',data.ticketId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم تحديث البلاغ'};
+  },
+
+  'tickets.claim':async(data)=>{
+    if(!S.user)return{success:false,message:'غير مسجل دخول'};
+    const{data:cur,error:e1}=await supabase.from('tickets').select('*').eq('id',data.ticketId).single();
+    if(e1||!cur)return{success:false,message:'البلاغ غير موجود'};
+    const hist=cur.history||[];
+    hist.push(nowHistoryEntry('تم استلام البلاغ',S.user.firstName+' '+S.user.lastName));
+    const{error}=await supabase.from('tickets').update({
+      assigned_id:S.user.id,assigned_name:S.user.firstName+' '+S.user.lastName,
+      status:cur.status==='جديدة'?'معينة':cur.status,history:hist,updated_at:new Date().toISOString()
+    }).eq('id',data.ticketId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم استلام البلاغ'};
+  },
+
+  'tickets.assign':async(data)=>{
+    const{data:cur,error:e1}=await supabase.from('tickets').select('*').eq('id',data.ticketId).single();
+    if(e1||!cur)return{success:false,message:'البلاغ غير موجود'};
+    const{data:u,error:e2}=await supabase.from('users').select('*').eq('id',data.assigneeId).single();
+    if(e2||!u)return{success:false,message:'المستخدم غير موجود'};
+    const{firstName,lastName}=splitName(u.name);
+    const hist=cur.history||[];
+    hist.push(nowHistoryEntry('تم التعيين إلى '+firstName+' '+lastName,S.user?(S.user.firstName+' '+S.user.lastName):''));
+    const{error}=await supabase.from('tickets').update({
+      assigned_id:u.id,assigned_name:firstName+' '+lastName,
+      status:cur.status==='جديدة'?'معينة':cur.status,history:hist,updated_at:new Date().toISOString()
+    }).eq('id',data.ticketId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم التعيين'};
+  },
+
+  'tickets.unassign':async(data)=>{
+    const{data:cur,error:e1}=await supabase.from('tickets').select('*').eq('id',data.ticketId).single();
+    if(e1||!cur)return{success:false,message:'البلاغ غير موجود'};
+    const hist=cur.history||[];
+    hist.push(nowHistoryEntry('تم إلغاء التعيين',S.user?(S.user.firstName+' '+S.user.lastName):''));
+    const{error}=await supabase.from('tickets').update({assigned_id:null,assigned_name:null,status:'جديدة',history:hist,updated_at:new Date().toISOString()}).eq('id',data.ticketId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم إلغاء التعيين'};
+  },
+
+  'tickets.help':async(data)=>{
+    const{data:cur,error:e1}=await supabase.from('tickets').select('*').eq('id',data.ticketId).single();
+    if(e1||!cur)return{success:false,message:'البلاغ غير موجود'};
+    const hist=cur.history||[];
+    hist.push(nowHistoryEntry('طلب مساعدة: '+(data.helpNotes||''),S.user?(S.user.firstName+' '+S.user.lastName):''));
+    const{error}=await supabase.from('tickets').update({history:hist,updated_at:new Date().toISOString()}).eq('id',data.ticketId);
+    if(error)return{success:false,message:error.message};
+    // notify the helper
+    if(data.helperId){
+      try{await supabase.from('notifications').insert({user_id:data.helperId,ticket_id:data.ticketId,message:'طلب مساعدة في البلاغ '+data.ticketId});}catch(e){}
+    }
+    return{success:true,message:'تم إرسال طلب المساعدة'};
+  },
+
+  'tickets.attach':async(data)=>{
+    const{data:cur,error:e1}=await supabase.from('tickets').select('*').eq('id',data.ticketId).single();
+    if(e1||!cur)return{success:false,message:'البلاغ غير موجود'};
+    const atts=Array.isArray(cur.attachments)?cur.attachments:[];
+    atts.push({fileName:data.fileName,mimeType:data.mimeType,base64:data.base64||data.fileBase64,addedAt:new Date().toISOString()});
+    const{error}=await supabase.from('tickets').update({attachments:atts,updated_at:new Date().toISOString()}).eq('id',data.ticketId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم رفع المرفق'};
+  },
+
+  'tickets.delete':async(data)=>{
+    const{error}=await supabase.from('tickets').delete().eq('id',data.ticketId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحذف'};
+  },
+
+  /* ---------- USERS ---------- */
+  'users.list':async()=>{
+    const{data:rows,error}=await supabase.from('users').select('*').order('created_at',{ascending:false});
+    if(error)return{success:false,message:error.message};
+    return{success:true,users:(rows||[]).map(mapUserRow)};
+  },
+
+  'users.create':async(data)=>{
+    data=data||{};
+    const fullName=(data.firstName||'')+' '+(data.lastName||'');
+    const row={
+      emp_id:data.empId,password:data.password,name:fullName.trim(),
+      role:data.role||'user',dept:data.department||null,
+      email:data.email||null,phone:data.phone||null,active:true
+    };
+    const{error}=await supabase.from('users').insert(row);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم إنشاء الحساب'};
+  },
+
+  'users.resetPassword':async(data)=>{
+    const{error}=await supabase.from('users').update({password:data.newPassword}).eq('id',data.userId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم تغيير كلمة المرور'};
+  },
+
+  'users.setActive':async(data)=>{
+    const{error}=await supabase.from('users').update({active:data.active}).eq('id',data.userId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:data.active?'تم التفعيل':'تم الإيقاف'};
+  },
+
+  'users.delete':async(data)=>{
+    const{error}=await supabase.from('users').delete().eq('id',data.userId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحذف'};
+  },
+
+  /* ---------- DEPARTMENTS ---------- */
+  'departments.list':async()=>{
+    const{data:rows,error}=await supabase.from('departments').select('*').order('name');
+    if(error)return{success:false,message:error.message};
+    return{success:true,departments:rows||[]};
+  },
+  'departments.add':async(data)=>{
+    const{error}=await supabase.from('departments').insert({name:data.name});
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تمت الإضافة'};
+  },
+  'departments.delete':async(data)=>{
+    const{error}=await supabase.from('departments').delete().eq('id',data.id);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحذف'};
+  },
+
+  /* ---------- DEVICES ---------- */
+  'devices.list':async(data)=>{
+    data=data||{};
+    let q=supabase.from('devices').select('*').order('created_at',{ascending:false});
+    const{data:rows,error}=await q;
+    if(error)return{success:false,message:error.message};
+    let devices=(rows||[]).map(d=>({
+      id:d.id,ticketId:d.ticket_id,deviceType:d.device_type,
+      stage:mapDeviceStage(d.status),
+      status:d.status,
+      serialNumber:(d.notes||'').split('—')[1]?.trim()||(d.notes||''),
+      ownerName:(d.history&&d.history[0]&&d.history[0].owner)||'',
+      issueDescription:d.notes||'',
+      notes:d.notes,history:d.history||[],
+      createdAt:d.created_at,updatedAt:d.updated_at
+    }));
+    if(data.filter&&data.filter!=='all')devices=devices.filter(d=>d.status===data.filter);
+    return{success:true,devices};
+  },
+
+  'devices.checkin':async(data)=>{
+    if(!S.user)return{success:false,message:'غير مسجل دخول'};
+    const row={
+      ticket_id:data.ticketId||null,
+      device_type:data.deviceType||'other',
+      status:'عند IT',
+      notes:[data.serialNumber||data.desc,data.ownerName,data.dept,data.issueDescription||data.notes].filter(Boolean).join(' — '),
+      checked_in_by:S.user.id,
+      history:[{action:'استلام من الموظف',by:S.user.firstName+' '+S.user.lastName,time:new Date().toLocaleString('ar-EG'),owner:data.ownerName||data.owner}]
+    };
+    const{error}=await supabase.from('devices').insert(row);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم تسجيل استلام الجهاز'};
+  },
+
+  'devices.sendToTech':async(data)=>{
+    const{data:cur,error:e1}=await supabase.from('devices').select('*').eq('id',data.deviceId).single();
+    if(e1||!cur)return{success:false,message:'الجهاز غير موجود'};
+    const hist=cur.history||[];
+    hist.push({action:'تسليم للفني',by:S.user?(S.user.firstName+' '+S.user.lastName):'',time:new Date().toLocaleString('ar-EG'),notes:data.notes});
+    const{error}=await supabase.from('devices').update({status:'عند الفني',sent_to_tech:data.techId||null,history:hist,updated_at:new Date().toISOString()}).eq('id',data.deviceId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم إرسال الجهاز للفني'};
+  },
+
+  'devices.repairDone':async(data)=>{
+    const{data:cur,error:e1}=await supabase.from('devices').select('*').eq('id',data.deviceId).single();
+    if(e1||!cur)return{success:false,message:'الجهاز غير موجود'};
+    const hist=cur.history||[];
+    hist.push({action:'تمت الصيانة',by:S.user?(S.user.firstName+' '+S.user.lastName):'',time:new Date().toLocaleString('ar-EG'),notes:data.repairNotes||data.work});
+    const{error}=await supabase.from('devices').update({status:'أُنجز — بانتظار IT',history:hist,updated_at:new Date().toISOString()}).eq('id',data.deviceId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم تسجيل إتمام الإصلاح'};
+  },
+
+  'devices.receiveBack':async(data)=>{
+    const{data:cur,error:e1}=await supabase.from('devices').select('*').eq('id',data.deviceId).single();
+    if(e1||!cur)return{success:false,message:'الجهاز غير موجود'};
+    const hist=cur.history||[];
+    hist.push({action:'استلام من الفني',by:S.user?(S.user.firstName+' '+S.user.lastName):'',time:new Date().toLocaleString('ar-EG'),notes:data.notes});
+    const{error}=await supabase.from('devices').update({status:'جاهز للتسليم',history:hist,updated_at:new Date().toISOString()}).eq('id',data.deviceId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم استلام الجهاز من الفني'};
+  },
+
+  'devices.deliver':async(data)=>{
+    const{data:cur,error:e1}=await supabase.from('devices').select('*').eq('id',data.deviceId).single();
+    if(e1||!cur)return{success:false,message:'الجهاز غير موجود'};
+    const hist=cur.history||[];
+    hist.push({action:'تسليم للموظف',by:S.user?(S.user.firstName+' '+S.user.lastName):'',time:new Date().toLocaleString('ar-EG'),notes:data.deliveryNotes});
+    const{error}=await supabase.from('devices').update({status:'مُسلَّم',history:hist,updated_at:new Date().toISOString()}).eq('id',data.deviceId);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم تسليم الجهاز للموظف'};
+  },
+
+  /* ---------- INTERNET USERS ---------- */
+  'internet.users.list':async()=>{
+    const{data:rows,error}=await supabase.from('internet_users').select('*').order('updated_at',{ascending:false});
+    if(error)return{success:false,message:error.message};
+    return{success:true,users:(rows||[]).map(u=>({
+      id:u.id,name:u.name,dept:u.dept,username:u.username,quota:u.quota,
+      active:u.active!==false,updatedAt:u.updated_at
+    }))};
+  },
+  'internet.users.update':async(data)=>{
+    const upd={name:data.name,username:data.username,updated_at:new Date().toISOString()};
+    if(data.quota!==undefined)upd.notes=String(data.quota);
+    if(data.active!==undefined)upd.active=data.active;
+    let q;
+    if(data.id)q=supabase.from('internet_users').update(upd).eq('id',data.id);
+    else q=supabase.from('internet_users').insert(upd);
+    const{error}=await q;
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم التحديث'};
+  },
+  'internet.users.search':async(data)=>{
+    const empId=data.empId||'';
+    const{data:user}=await supabase.from('users').select('*').eq('emp_id',empId).maybeSingle();
+    if(!user)return{success:false,message:'الموظف غير موجود'};
+    const{data:iu}=await supabase.from('internet_users').select('*').ilike('name',`%${user.name}%`).maybeSingle();
+    return{success:true,user:mapUserRow(user),internetUser:iu||null};
+  },
+
+  /* ---------- NOTIFICATIONS ---------- */
+  'notifications.list':async()=>{
+    if(!S.user)return{success:false,message:'غير مسجل دخول'};
+    const{data:rows,error}=await supabase.from('notifications').select('*').eq('user_id',S.user.id).order('created_at',{ascending:false}).limit(30);
+    if(error)return{success:false,message:error.message};
+    return{success:true,notifications:(rows||[]).map(n=>({id:n.ticket_id||n.id,notifId:n.id,message:n.message,read:n.read,createdAt:n.created_at}))};
+  },
+  'notifications.markAllRead':async()=>{
+    if(!S.user)return{success:false};
+    const{error}=await supabase.from('notifications').update({read:true}).eq('user_id',S.user.id).eq('read',false);
+    if(error)return{success:false,message:error.message};
+    return{success:true};
+  },
+  'notifications.broadcastClaim':async(data)=>{
+    // notify other IT staff that a ticket was claimed
+    const{data:itUsers}=await supabase.from('users').select('id').in('role',['it','it_manager','admin']);
+    const rows=(itUsers||[]).filter(u=>u.id!==S.user.id).map(u=>({user_id:u.id,ticket_id:data.ticketId,message:(data.claimerName||'')+' استلم البلاغ '+data.ticketId}));
+    if(rows.length)await supabase.from('notifications').insert(rows);
+    return{success:true};
+  },
+  'notifications.broadcastAssign':async(data)=>{
+    return{success:true};
+  },
+
+  /* ---------- GUIDELINES ---------- */
+  'guidelines.list':async()=>{
+    const{data:rows,error}=await supabase.from('guidelines').select('*').order('created_at',{ascending:false});
+    if(error)return{success:false,message:error.message};
+    return{success:true,guidelines:rows||[]};
+  },
+  'guidelines.add':async(data)=>{
+    const{error}=await supabase.from('guidelines').insert({title:data.title,content:data.content});
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تمت الإضافة'};
+  },
+  'guidelines.update':async(data)=>{
+    const{error}=await supabase.from('guidelines').update({title:data.title,content:data.content}).eq('id',data.id);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم التعديل'};
+  },
+  'guidelines.delete':async(data)=>{
+    const{error}=await supabase.from('guidelines').delete().eq('id',data.id);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحذف'};
+  },
+
+  /* ---------- MANUAL ---------- */
+  'manual.list':async()=>{
+    const{data:rows,error}=await supabase.from('manual_entries').select('*').order('created_at',{ascending:false});
+    if(error)return{success:false,message:error.message};
+    return{success:true,entries:(rows||[]).map(m=>{
+      let content={};
+      try{content=JSON.parse(m.content||'{}');}catch(e){content={};}
+      return{id:m.id,device:m.device_type,title:m.title,desc:content.desc||'',steps:content.steps||[],icon:content.icon||'fas fa-book',createdAt:m.created_at};
+    })};
+  },
+  'manual.add':async(data)=>{
+    const content=JSON.stringify({desc:data.desc||'',steps:data.steps||[],icon:data.icon||'fas fa-book'});
+    const{error}=await supabase.from('manual_entries').insert({device_type:data.deviceType,title:data.title,content});
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تمت الإضافة'};
+  },
+  'manual.delete':async(data)=>{
+    const{error}=await supabase.from('manual_entries').delete().eq('id',data.id);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحذف'};
+  },
+
+  /* ---------- KNOWLEDGE ---------- */
+  'knowledge.list':async()=>{
+    const{data:rows,error}=await supabase.from('knowledge').select('*').order('created_at',{ascending:false}).limit(50);
+    if(error)return{success:false,message:error.message};
+    return{success:true,items:(rows||[]).map(k=>({id:k.id,problem:k.topic,solution:k.content}))};
+  },
+
+  /* ---------- AI CHAT ---------- */
+  'ai.chat':async(data)=>{
+    try{
+      const{data:res,error}=await supabase.functions.invoke('ai-chat',{body:{messages:(data&&data.messages)||[],device:data&&data.device}});
+      if(error)return{success:false,message:error.message||'خطأ في المساعد الذكي'};
+      return{success:true,reply:res&&res.reply};
+    }catch(e){return{success:false,message:'خطأ في الاتصال بالمساعد الذكي'};}
+  },
+
+  /* ---------- USER INFO ---------- */
+  'user.myInfo':async()=>{
+    if(!S.user)return{success:false};
+    const{data:u}=await supabase.from('users').select('*').eq('id',S.user.id).single();
+    const{count}=await supabase.from('tickets').select('id',{count:'exact',head:true}).eq('requester_id',S.user.id);
+    let internetUser=null;
+    if(u){
+      const{data:iu}=await supabase.from('internet_users').select('*').ilike('name',`%${u.name}%`).maybeSingle();
+      internetUser=iu?iu.username:null;
+    }
+    return{success:true,internetUser,phone:u?u.phone:null,ticketCount:count||0};
+  },
+
+  /* ---------- STATS ---------- */
+  'stats.dashboard':async()=>{
+    const{data:rows,error}=await supabase.from('tickets').select('*');
+    if(error)return{success:false,message:error.message};
+    const tickets=rows||[];
+    const stats={total:tickets.length,open:0,assigned:0,inProgress:0,closed:0,overdue:0};
+    const byPriority={'عاجلة':0,'عالية':0,'متوسطة':0,'منخفضة':0};
+    const probCount={};
+    const perfMap={};
+    tickets.forEach(t=>{
+      if(t.status==='جديدة')stats.open++;
+      else if(t.status==='معينة')stats.assigned++;
+      else if(t.status==='قيد المعالجة')stats.inProgress++;
+      else if(t.status==='تم حل البلاغ')stats.closed++;
+      if(computeOverdue({status:t.status,createdAt:t.created_at}))stats.overdue++;
+      if(t.priority)byPriority[t.priority]=(byPriority[t.priority]||0)+1;
+      if(t.problem_type)probCount[t.problem_type]=(probCount[t.problem_type]||0)+1;
+      if(t.assigned_name){
+        perfMap[t.assigned_name]=perfMap[t.assigned_name]||{name:t.assigned_name,total:0,solved:0,open:0,times:[]};
+        perfMap[t.assigned_name].total++;
+        if(t.status==='تم حل البلاغ'){
+          perfMap[t.assigned_name].solved++;
+          if(t.solved_at&&t.created_at)perfMap[t.assigned_name].times.push((new Date(t.solved_at)-new Date(t.created_at))/3600000);
+        }else perfMap[t.assigned_name].open++;
+      }
+    });
+    const itPerformance=Object.values(perfMap).map(p=>({
+      name:p.name,total:p.total,solved:p.solved,open:p.open,
+      rate:p.total?Math.round(p.solved/p.total*100):0,
+      avg:p.times.length?Math.round(p.times.reduce((a,b)=>a+b,0)/p.times.length):0
+    }));
+    const topProblems=Object.entries(probCount).map(([name,count])=>({name,count})).sort((a,b)=>b.count-a.count).slice(0,5);
+    // daily counts for last 14 days
+    const dayMap={};
+    tickets.forEach(t=>{
+      if(!t.created_at)return;
+      const d=t.created_at.slice(0,10);
+      dayMap[d]=(dayMap[d]||0)+1;
+    });
+    const daily=Object.entries(dayMap).sort((a,b)=>a[0]<b[0]?-1:1).slice(-14).map(([d,c])=>({d,c}));
+    return{success:true,stats,byPriority,topProblems,itPerformance,daily};
+  },
+
+  'stats.user':async()=>{
+    if(!S.user)return{success:false};
+    const{data:rows,error}=await supabase.from('tickets').select('*').eq('requester_id',S.user.id).order('created_at',{ascending:false});
+    if(error)return{success:false,message:error.message};
+    const tickets=rows||[];
+    const stats={total:tickets.length,open:0,closed:0,inProgress:0};
+    tickets.forEach(t=>{
+      if(t.status==='جديدة')stats.open++;
+      else if(t.status==='تم حل البلاغ')stats.closed++;
+      else if(t.status==='قيد المعالجة')stats.inProgress++;
+    });
+    const recent=tickets.slice(0,5).map(t=>({problemType:t.problem_type,status:t.status,createdAt:t.created_at}));
+    return{success:true,stats,recent};
+  },
+
+  'stats.tech':async()=>{
+    if(!S.user)return{success:false};
+    const{data:rows,error}=await supabase.from('devices').select('*').eq('sent_to_tech',S.user.id);
+    if(error)return{success:false,message:error.message};
+    const devices=rows||[];
+    const solved=devices.filter(d=>d.status==='أُنجز — بانتظار IT'||d.status==='جاهز للتسليم'||d.status==='مُسلَّم').length;
+    const pending=devices.filter(d=>d.status==='عند الفني').length;
+    return{success:true,solved,pending,avgTime:'—'};
+  }
+};
+
+function mapDeviceStage(status){
+  const map={'عند IT':'checkin','عند الفني':'sent_tech','أُنجز — بانتظار IT':'repaired','جاهز للتسليم':'received_back','مُسلَّم':'delivered'};
+  return map[status]||'checkin';
+}
+
+async function api(action,data){
+  if(API[action])return API[action](data);
+  return Promise.reject('unknown action: '+action);
+}
