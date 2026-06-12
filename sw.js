@@ -1,10 +1,13 @@
 'use strict';
 /* IT Help Desk Service Worker — app-shell caching for offline support */
-const CACHE_NAME='it-helpdesk-v1';
+const CACHE_NAME='it-helpdesk-v2';
 
 const LOCAL_ASSETS=[
   './',
   './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
   './css/styles.css',
   './js/config.js',
   './js/api.js',
