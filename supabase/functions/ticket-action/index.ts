@@ -28,7 +28,7 @@ function page(title: string, body: string, ok = true) {
       .item:hover{background:#eef2ff}
     </style></head>
     <body><div class="card"><div class="head">🛠️ IT Help Desk</div><div class="body">${body}</div></div></body></html>`,
-    { headers: { "Content-Type": "text/html; charset=utf-8" } },
+    { headers: { "Content-Type": "text/html; charset=utf-8", "Content-Disposition": "inline" } },
   );
 }
 
