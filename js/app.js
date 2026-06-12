@@ -88,12 +88,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   checkSession();
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginPage').classList.contains('active'))doLogin();});
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
-    let _swReloaded=false;
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{
-      if(_swReloaded)return;
-      _swReloaded=true;
-      location.reload();
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
     });
+    if(window.caches&&caches.keys){
+      caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));
+    }
   }
 });
