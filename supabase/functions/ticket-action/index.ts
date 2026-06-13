@@ -3,7 +3,7 @@
 // Deploy with: supabase functions deploy ticket-action
 // Uses the auto-injected SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars.
 
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import nodemailer from "npm:nodemailer@6.9.14";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -68,27 +68,18 @@ async function sendEmail(to: string | string[], subject: string, message: string
   </div>
 </div>`;
   try {
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 465,
-        tls: true,
-        auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD },
-      },
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
     });
-    await client.send({
+    await transporter.sendMail({
       from: NOTIFY_FROM,
-      to: Array.isArray(to) ? to : [to],
+      to: Array.isArray(to) ? to.join(",") : to,
       subject,
-      mimeContent: [
-        {
-          mimeType: "text/html; charset=UTF-8",
-          content: html,
-          transferEncoding: "base64",
-        },
-      ],
+      html,
     });
-    await client.close();
   } catch (_e) { /* ignore */ }
 }
 

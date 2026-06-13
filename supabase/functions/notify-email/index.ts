@@ -3,7 +3,7 @@
 // Deploy with: supabase functions deploy notify-email
 // Requires secrets: GMAIL_USER, GMAIL_APP_PASSWORD (Google App Password)
 
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import nodemailer from "npm:nodemailer@6.9.14";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -70,28 +70,19 @@ Deno.serve(async (req: Request) => {
   </div>
 </div>`;
 
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 465,
-        tls: true,
-        auth: { username: gmailUser, password: gmailPass },
-      },
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user: gmailUser, pass: gmailPass },
     });
 
-    await client.send({
+    await transporter.sendMail({
       from,
-      to: Array.isArray(to) ? to : [to],
+      to: Array.isArray(to) ? to.join(",") : to,
       subject,
-      mimeContent: [
-        {
-          mimeType: "text/html; charset=UTF-8",
-          content: html,
-          transferEncoding: "base64",
-        },
-      ],
+      html,
     });
-    await client.close();
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
