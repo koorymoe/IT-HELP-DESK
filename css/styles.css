@@ -130,6 +130,11 @@ label{font-size:11px;font-weight:700;color:var(--sl);display:block;margin-bottom
   .ig{grid-template-columns:1fr!important}
 }
 /* Off-canvas sidebar for admin/manager/IT roles on mobile (not the employee mobile view) */
+.upd-choice{flex:1;padding:14px 10px;border-radius:12px;border:2px solid var(--border);background:var(--card);color:var(--text);font-weight:700;font-size:14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.upd-choice:hover{border-color:#94a3b8}
+#upd-btn-yes.selected{border-color:#10b981;background:#10b98115;color:#10b981}
+#upd-btn-no.selected{border-color:#f59e0b;background:#f59e0b15;color:#f59e0b}
+
 .tb-burger{display:none}
 @media(max-width:900px){
   #appPage.active:not(.force-mobile-view) .tb-burger{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:transparent;color:var(--text);font-size:18px;cursor:pointer;border-radius:8px;margin-left:8px}

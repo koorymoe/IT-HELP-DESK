@@ -104,8 +104,9 @@ async function subMob(){
   }catch(e){toast('خطأ في الإرسال',true);}
   btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane"></i>إرسال البلاغ';
 }
-function openUpd(tid){S.tid=tid;['upd-st','upd-sol','upd-not'].forEach(id=>document.getElementById(id).value='');openM('ovUpd');}
-async function subUpd(){const st=document.getElementById('upd-st').value,sol=document.getElementById('upd-sol').value.trim(),note=document.getElementById('upd-not').value.trim();try{const r=await api('tickets.update',{ticketId:S.tid,status:st,solution:sol,notes:note});if(r&&r.success){toast('✅ '+r.message);closeM('ovUpd');cc();loadTickets();loadDashboard();}else toast(r?r.message:'خطأ',true);}catch(e){toast('خطأ',true);}}
+function openUpd(tid){S.tid=tid;['upd-st','upd-sol','upd-not'].forEach(id=>document.getElementById(id).value='');document.querySelectorAll('.upd-choice').forEach(b=>b.classList.remove('selected'));openM('ovUpd');}
+function pickUpdSt(st){document.getElementById('upd-st').value=st;document.getElementById('upd-btn-yes').classList.toggle('selected',st==='تم حل البلاغ');document.getElementById('upd-btn-no').classList.toggle('selected',st==='قيد المعالجة');}
+async function subUpd(){const st=document.getElementById('upd-st').value,sol=document.getElementById('upd-sol').value.trim(),note=document.getElementById('upd-not').value.trim();if(!st){toast('اختر تم الحل أو لم يتم الحل',true);return;}try{const r=await api('tickets.update',{ticketId:S.tid,status:st,solution:sol,notes:note});if(r&&r.success){toast('✅ '+r.message);closeM('ovUpd');cc();loadTickets();loadDashboard();}else toast(r?r.message:'خطأ',true);}catch(e){toast('خطأ',true);}}
 
 /* ── CLAIM + ASSIGN + HELP ── */
 async function doClaim(tid){

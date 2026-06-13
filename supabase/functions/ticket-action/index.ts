@@ -48,20 +48,20 @@ async function rest(path: string, init: RequestInit = {}) {
 async function sendEmail(to: string | string[], subject: string, message: string) {
   if (!RESEND_API_KEY) return;
   const html = `
-<div dir="rtl" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f1f5f9;padding:24px">
-  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08)">
-    <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:24px;text-align:center">
+<div dir="rtl" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#0f172a;padding:24px">
+  <div style="max-width:520px;margin:0 auto;background:#1e293b;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid #334155">
+    <div style="background:linear-gradient(135deg,#6366f1,#0f172a);padding:24px;text-align:center">
       <div style="font-size:32px;margin-bottom:6px">🛠️</div>
       <div style="color:#fff;font-size:18px;font-weight:700">IT Help Desk</div>
     </div>
     <div style="padding:24px">
-      <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:12px">${subject}</div>
-      <div style="font-size:14px;line-height:1.8;color:#475569;background:#f8fafc;border-right:4px solid #6366f1;padding:14px 16px;border-radius:8px">${message}</div>
+      <div style="font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:12px">${subject}</div>
+      <div style="font-size:14px;line-height:1.8;color:#cbd5e1;background:#0f172a;border-right:4px solid #6366f1;padding:14px 16px;border-radius:8px">${message}</div>
       <div style="margin-top:24px;text-align:center">
         <a href="${APP_URL}" style="display:inline-block;background:#6366f1;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px">فتح النظام</a>
       </div>
     </div>
-    <div style="background:#f8fafc;text-align:center;padding:14px;font-size:12px;color:#94a3b8">إشعار تلقائي من نظام IT Help Desk</div>
+    <div style="background:#0f172a;text-align:center;padding:14px;font-size:12px;color:#64748b;border-top:1px solid #1e293b">إشعار تلقائي من نظام IT Help Desk</div>
   </div>
 </div>`;
   try {
@@ -110,6 +110,13 @@ Deno.serve(async (req: Request) => {
       if (!updated || !updated.length) {
         return page("تم الاستلام مسبقاً", `<div class="icon">ℹ️</div><div class="msg">عذراً، تم استلام هذا البلاغ من قبل موظف آخر قبلك</div><a class="btn" href="${APP_URL}">فتح النظام</a>`, false);
       }
+      // notify other IT staff that this ticket was claimed
+      const othersRes = await rest(`users?role=in.(${IT_ROLES.join(",")})&select=id`);
+      const others = await othersRes.json();
+      const rows = (others || [])
+        .filter((u: any) => u.id !== actor.id)
+        .map((u: any) => ({ user_id: u.id, ticket_id: ticketId, message: `تم استلام البلاغ "${ticket.title || ticketId}" من قبل ${actor.name}` }));
+      if (rows.length) await rest(`notifications`, { method: "POST", body: JSON.stringify(rows) });
     } else {
       await rest(`tickets?id=eq.${ticketId}`, { method: "PATCH", body: JSON.stringify({ status: "قيد المعالجة" }) });
     }

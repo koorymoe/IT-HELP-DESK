@@ -471,9 +471,14 @@
 <!-- MODALS -->
 <div class="ov" id="ovTick"><div class="modal"><div class="modal-h"><h3><i class="fas fa-clipboard-check"></i>تفاصيل البلاغ</h3><button class="modal-x" onclick="closeM('ovTick')"><i class="fas fa-times"></i></button></div><div id="mTBody"></div></div></div>
 <div class="ov" id="ovUpd"><div class="modal" style="max-width:460px"><div class="modal-h"><h3><i class="fas fa-edit"></i>تحديث البلاغ</h3><button class="modal-x" onclick="closeM('ovUpd')"><i class="fas fa-times"></i></button></div>
-<div class="fg-r" style="margin-bottom:12px"><label>الحالة الجديدة</label><select id="upd-st"><option value="">بدون تغيير</option><option value="معينة">معينة</option><option value="قيد المعالجة">قيد المعالجة</option><option value="تم حل البلاغ">تم حل البلاغ</option></select></div>
-<div class="fg-r" style="margin-bottom:12px"><label>الحل المطبق</label><textarea id="upd-sol" rows="3" placeholder="اكتب الحل الذي طبقته..."></textarea></div>
-<div class="fg-r"><label>ملاحظات</label><textarea id="upd-not" rows="2" placeholder="ملاحظات إضافية..."></textarea></div>
+<div class="fg-r" style="margin-bottom:12px"><label>هل تم حل البلاغ؟</label>
+<input type="hidden" id="upd-st" value="">
+<div style="display:flex;gap:10px">
+<button type="button" id="upd-btn-yes" class="upd-choice" onclick="pickUpdSt('تم حل البلاغ')"><i class="fas fa-check-circle"></i> تم الحل</button>
+<button type="button" id="upd-btn-no" class="upd-choice" onclick="pickUpdSt('قيد المعالجة')"><i class="fas fa-redo"></i> لم يتم الحل</button>
+</div></div>
+<div class="fg-r"><label>ملاحظات (اختياري)</label><textarea id="upd-not" rows="3" placeholder="اكتب أي ملاحظات إن وجدت..."></textarea></div>
+<input type="hidden" id="upd-sol" value="">
 <div class="f-acts"><button class="btn btn-g" onclick="closeM('ovUpd')">إلغاء</button><button class="btn btn-p" onclick="subUpd()"><i class="fas fa-save"></i>حفظ</button></div>
 </div></div>
 <div class="ov" id="ovAsgn"><div class="modal" style="max-width:400px"><div class="modal-h"><h3><i class="fas fa-user-check"></i>تعيين المعالج</h3><button class="modal-x" onclick="closeM('ovAsgn')"><i class="fas fa-times"></i></button></div>

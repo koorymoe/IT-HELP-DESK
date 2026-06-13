@@ -27,9 +27,9 @@ async function notifyNewTicketByEmail(ticket){
     const subject='بلاغ جديد: '+(ticket.problemType||'بلاغ');
     const infoCard=`
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-        <span style="font-size:11px;font-weight:700;color:#475569;background:#eef2ff;padding:4px 10px;border-radius:8px"><i>👤</i> ${esc(ticket.requesterName)}</span>
-        <span style="font-size:11px;font-weight:700;color:#475569;background:#eef2ff;padding:4px 10px;border-radius:8px"><i>🏢</i> ${esc(ticket.requesterDept||'—')}</span>
-        <span style="font-size:11px;font-weight:700;color:#475569;background:#eef2ff;padding:4px 10px;border-radius:8px"><i>🔧</i> ${esc(ticket.problemType)}</span>
+        <span style="font-size:11px;font-weight:700;color:#cbd5e1;background:#1e293b;padding:4px 10px;border-radius:8px;border:1px solid #334155"><i>👤</i> ${esc(ticket.requesterName)}</span>
+        <span style="font-size:11px;font-weight:700;color:#cbd5e1;background:#1e293b;padding:4px 10px;border-radius:8px;border:1px solid #334155"><i>🏢</i> ${esc(ticket.requesterDept||'—')}</span>
+        <span style="font-size:11px;font-weight:700;color:#cbd5e1;background:#1e293b;padding:4px 10px;border-radius:8px;border:1px solid #334155"><i>🔧</i> ${esc(ticket.problemType)}</span>
       </div>
       <div>${esc(ticket.desc)}</div>`;
 
@@ -50,7 +50,7 @@ async function notifyNewTicketByEmail(ticket){
       const assignLink=`${TICKET_ACTION_URL}?action=assignlist&ticket=${ticket.id}&email=${encodeURIComponent(u.email)}`;
       const actions=`<div style="text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <a href="${assignLink}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;text-decoration:none;font-weight:800;font-size:14px;padding:13px 28px;border-radius:12px;box-shadow:0 6px 16px rgba(99,102,241,.35)">👤 تعيين البلاغ</a>
-        <a href="${APP_URL}" style="display:inline-block;background:#fff;color:#475569;text-decoration:none;font-weight:800;font-size:14px;padding:13px 28px;border-radius:12px;border:1px solid #e2e8f0">فتح النظام</a>
+        <a href="${APP_URL}" style="display:inline-block;background:#0f172a;color:#cbd5e1;text-decoration:none;font-weight:800;font-size:14px;padding:13px 28px;border-radius:12px;border:1px solid #334155">فتح النظام</a>
       </div>`;
       await sb.functions.invoke('notify-email',{body:{to:u.email,subject,message:infoCard,actions,accent,badge:ticket.priority||''}});
     }

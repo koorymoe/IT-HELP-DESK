@@ -46,9 +46,9 @@ Deno.serve(async (req: Request) => {
       : "";
 
     const html = `
-<div dir="rtl" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#eef2f7;padding:28px 16px">
+<div dir="rtl" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#0f172a;padding:28px 16px">
   <div style="max-width:540px;margin:0 auto">
-    <div style="background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(15,23,42,.08);border:1px solid #eef0f4">
+    <div style="background:#1e293b;border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid #334155">
       <div style="background:linear-gradient(135deg,${accent},#0f172a);padding:28px 24px;text-align:center;position:relative">
         <div style="font-size:36px;margin-bottom:8px">🛠️</div>
         <div style="color:#fff;font-size:19px;font-weight:800;letter-spacing:.3px">IT Help Desk</div>
@@ -56,15 +56,15 @@ Deno.serve(async (req: Request) => {
       </div>
       <div style="padding:28px 24px">
         ${badgeHtml ? `<div>${badgeHtml}</div>` : ""}
-        <div style="font-size:17px;font-weight:800;color:#0f172a;margin-bottom:14px;line-height:1.5">${subject}</div>
-        <div style="font-size:14px;line-height:2;color:#475569;background:#f8fafc;border-right:4px solid ${accent};padding:16px 18px;border-radius:10px">${message}</div>
+        <div style="font-size:17px;font-weight:800;color:#f1f5f9;margin:10px 0 14px;line-height:1.5">${subject}</div>
+        <div style="font-size:14px;line-height:2;color:#cbd5e1;background:#0f172a;border-right:4px solid ${accent};padding:16px 18px;border-radius:10px">${message}</div>
         ${actions ? `<div style="margin-top:22px">${actions}</div>` : ""}
       </div>
-      <div style="background:#f8fafc;text-align:center;padding:16px;font-size:11px;color:#94a3b8;border-top:1px solid #f1f5f9">
+      <div style="background:#0f172a;text-align:center;padding:16px;font-size:11px;color:#64748b;border-top:1px solid #1e293b">
         إشعار تلقائي من نظام IT Help Desk &mdash; لا حاجة للرد على هذا البريد
       </div>
     </div>
-    <div style="text-align:center;color:#cbd5e1;font-size:11px;margin-top:14px">© IT Help Desk</div>
+    <div style="text-align:center;color:#475569;font-size:11px;margin-top:14px">© IT Help Desk</div>
   </div>
 </div>`;
 
