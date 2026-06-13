@@ -1,8 +1,9 @@
 // Supabase Edge Function: notify-email
-// Sends a professional email notification via Resend.
+// Sends a professional email notification via Gmail SMTP.
 // Deploy with: supabase functions deploy notify-email
-// Requires secret: RESEND_API_KEY (supabase secrets set RESEND_API_KEY=...)
-// Optional secret: NOTIFY_FROM_EMAIL (default: IT Help Desk <onboarding@resend.dev>)
+// Requires secrets: GMAIL_USER, GMAIL_APP_PASSWORD (Google App Password)
+
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,10 +17,11 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get("RESEND_API_KEY");
-    if (!apiKey) {
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPass = Deno.env.get("GMAIL_APP_PASSWORD");
+    if (!gmailUser || !gmailPass) {
       return new Response(
-        JSON.stringify({ error: "RESEND_API_KEY is not configured" }),
+        JSON.stringify({ error: "GMAIL_USER / GMAIL_APP_PASSWORD is not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -39,7 +41,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const from = Deno.env.get("NOTIFY_FROM_EMAIL") || "IT Help Desk <onboarding@resend.dev>";
+    const from = Deno.env.get("NOTIFY_FROM_EMAIL") || `IT Help Desk <${gmailUser}>`;
 
     const badgeHtml = badge
       ? `<span style="display:inline-block;background:${accent}1a;color:${accent};font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;border:1px solid ${accent}40;margin-bottom:10px">${badge}</span>`
@@ -68,23 +70,26 @@ Deno.serve(async (req: Request) => {
   </div>
 </div>`;
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: { username: gmailUser, password: gmailPass },
       },
-      body: JSON.stringify({
-        from,
-        to: Array.isArray(to) ? to : [to],
-        subject,
-        html,
-      }),
     });
 
-    const result = await res.json();
-    return new Response(JSON.stringify(result), {
-      status: res.ok ? 200 : 500,
+    await client.send({
+      from,
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html,
+      content: "auto",
+    });
+    await client.close();
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

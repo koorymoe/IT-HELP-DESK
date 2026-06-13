@@ -3,11 +3,14 @@
 // Deploy with: supabase functions deploy ticket-action
 // Uses the auto-injected SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars.
 
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP_URL = "https://koorymoe.github.io/IT-HELP-DESK/";
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const NOTIFY_FROM = Deno.env.get("NOTIFY_FROM_EMAIL") || "IT Help Desk <onboarding@resend.dev>";
+const GMAIL_USER = Deno.env.get("GMAIL_USER");
+const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
+const NOTIFY_FROM = Deno.env.get("NOTIFY_FROM_EMAIL") || `IT Help Desk <${GMAIL_USER}>`;
 
 const IT_ROLES = ["it", "it_manager", "admin", "tech"];
 
@@ -46,7 +49,7 @@ async function rest(path: string, init: RequestInit = {}) {
 }
 
 async function sendEmail(to: string | string[], subject: string, message: string) {
-  if (!RESEND_API_KEY) return;
+  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) return;
   const html = `
 <div dir="rtl" style="font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#0f172a;padding:24px">
   <div style="max-width:520px;margin:0 auto;background:#1e293b;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid #334155">
@@ -65,11 +68,16 @@ async function sendEmail(to: string | string[], subject: string, message: string
   </div>
 </div>`;
   try {
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: NOTIFY_FROM, to: Array.isArray(to) ? to : [to], subject, html }),
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD },
+      },
     });
+    await client.send({ from: NOTIFY_FROM, to: Array.isArray(to) ? to : [to], subject, html, content: "auto" });
+    await client.close();
   } catch (_e) { /* ignore */ }
 }
 
