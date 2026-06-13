@@ -83,8 +83,8 @@ Deno.serve(async (req: Request) => {
       from,
       to: Array.isArray(to) ? to : [to],
       subject,
+      content: subject,
       html,
-      content: "auto",
     });
     await client.close();
 

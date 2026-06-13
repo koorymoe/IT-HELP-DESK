@@ -76,7 +76,7 @@ async function sendEmail(to: string | string[], subject: string, message: string
         auth: { username: GMAIL_USER, password: GMAIL_APP_PASSWORD },
       },
     });
-    await client.send({ from: NOTIFY_FROM, to: Array.isArray(to) ? to : [to], subject, html, content: "auto" });
+    await client.send({ from: NOTIFY_FROM, to: Array.isArray(to) ? to : [to], subject, content: subject, html });
     await client.close();
   } catch (_e) { /* ignore */ }
 }
