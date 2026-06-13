@@ -511,6 +511,27 @@ const API={
     return{success:true,internetUsers,internetUser:internetUsers[0]?internetUsers[0].username:null,phone:u?u.phone:null,ticketCount:count||0};
   },
 
+  'stats.periods':async()=>{
+    const{data:rows,error}=await sb.from('tickets').select('status,created_at');
+    if(error)return{success:false,message:error.message};
+    const tickets=rows||[];
+    const now=new Date();
+    const todayStr=now.toISOString().slice(0,10);
+    const monthStr=now.toISOString().slice(0,7);
+    const mk=()=>({total:0,resolved:0,unresolved:0});
+    const day=mk(),month=mk(),overall=mk();
+    tickets.forEach(t=>{
+      const solved=t.status==='تم حل البلاغ';
+      const d=(t.created_at||'').slice(0,10),m=(t.created_at||'').slice(0,7);
+      overall.total++;solved?overall.resolved++:overall.unresolved++;
+      if(m===monthStr){month.total++;solved?month.resolved++:month.unresolved++;}
+      if(d===todayStr){day.total++;solved?day.resolved++:day.unresolved++;}
+    });
+    const rate=p=>p.total?Math.round(p.resolved/p.total*100):0;
+    day.rate=rate(day);month.rate=rate(month);overall.rate=rate(overall);
+    return{success:true,day,month,overall};
+  },
+
   /* ---------- STATS ---------- */
   'stats.dashboard':async()=>{
     const{data:rows,error}=await sb.from('tickets').select('*');

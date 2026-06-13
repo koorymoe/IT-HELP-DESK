@@ -15,7 +15,39 @@ function renderDash(r){
 }
 
 /* ── REPORTS ── */
-async function loadReports(){const c=gc('dashboard');const src=c||(await api('stats.dashboard').then(r=>r&&r.success?r:null).catch(()=>null));if(!src)return;const{stats,byPriority,itPerformance,daily}=src;mkChart('cSt2','doughnut',['جديدة','معينة','قيد المعالجة','تم الحل'],[stats.open,stats.assigned,stats.inProgress,stats.closed],['#3b82f6','#f59e0b','#06b6d4','#10b981']);mkChart('cPr2','pie',['عاجلة','عالية','متوسطة','منخفضة'],[byPriority['عاجلة'],byPriority['عالية'],byPriority['متوسطة'],byPriority['منخفضة']],['#ef4444','#f59e0b','#3b82f6','#8b5cf6']);if(daily&&daily.length)mkChart('cDy','line',daily.map(d=>d.d),daily.map(d=>d.c),['#6366f1']);if(itPerformance&&itPerformance.length)mkChart('cTm','bar',itPerformance.map(p=>p.name),itPerformance.map(p=>p.solved),['#10b981'],'بلاغات محلولة');const rate=stats.total?Math.round(stats.closed/stats.total*100):0;document.getElementById('r-sum').innerHTML=[{l:'معدل الإنجاز',v:rate+'%',c:'var(--in)',bg:'var(--in-l)',ic:'fa-percentage'},{l:'محلولة',v:stats.closed,c:'var(--gr-d)',bg:'var(--gr-l)',ic:'fa-check-circle'},{l:'متأخرة',v:stats.overdue,c:'#b91c1c',bg:'var(--re-l)',ic:'fa-clock'}].map(s=>`<div class="sc" style="--sc:${s.c};--sc-bg:${s.bg}"><div class="sc-ic"><i class="fas ${s.ic}"></i></div><div class="sc-n">${s.v}</div><div class="sc-l">${s.l}</div></div>`).join('');}
+async function loadReports(){
+  const c=gc('dashboard');const src=c||(await api('stats.dashboard').then(r=>r&&r.success?r:null).catch(()=>null));
+  if(src){
+    const{stats,byPriority,itPerformance,daily}=src;
+    mkChart('cSt2','doughnut',['جديدة','معينة','قيد المعالجة','تم الحل'],[stats.open,stats.assigned,stats.inProgress,stats.closed],['#3b82f6','#f59e0b','#06b6d4','#10b981']);
+    mkChart('cPr2','pie',['عاجلة','عالية','متوسطة','منخفضة'],[byPriority['عاجلة'],byPriority['عالية'],byPriority['متوسطة'],byPriority['منخفضة']],['#ef4444','#f59e0b','#3b82f6','#8b5cf6']);
+    if(daily&&daily.length)mkChart('cDy','line',daily.map(d=>d.d),daily.map(d=>d.c),['#6366f1']);
+    if(itPerformance&&itPerformance.length)mkChart('cTm','bar',itPerformance.map(p=>p.name),itPerformance.map(p=>p.solved),['#10b981'],'بلاغات محلولة');
+    const rate=stats.total?Math.round(stats.closed/stats.total*100):0;
+    document.getElementById('r-sum').innerHTML=[{l:'معدل الإنجاز',v:rate+'%',c:'var(--in)',bg:'var(--in-l)',ic:'fa-percentage'},{l:'محلولة',v:stats.closed,c:'var(--gr-d)',bg:'var(--gr-l)',ic:'fa-check-circle'},{l:'متأخرة',v:stats.overdue,c:'#b91c1c',bg:'var(--re-l)',ic:'fa-clock'}].map(s=>`<div class="sc" style="--sc:${s.c};--sc-bg:${s.bg}"><div class="sc-ic"><i class="fas ${s.ic}"></i></div><div class="sc-n">${s.v}</div><div class="sc-l">${s.l}</div></div>`).join('');
+  }
+  try{const pr=await api('stats.periods');if(pr&&pr.success)renderPeriodStats(pr);}catch(e){}
+}
+
+function renderPeriodStats(pr){
+  const el=document.getElementById('stat-periods');if(!el)return;
+  const role=S.user&&S.user.role;
+  const isMgrOnly=role==='manager';
+  const card=(title,ic,color,p)=>`
+    <div class="period-card" style="--pc:${color}">
+      <div class="pc-head"><span class="pc-ic"><i class="fas ${ic}"></i></span><span class="pc-title">${title}</span></div>
+      <div class="pc-main"><div class="pc-num">${p.total}</div><div class="pc-rate"><div class="pc-rate-ring" style="--p:${p.rate}">${p.rate}%</div><span>معدل الإنجاز</span></div></div>
+      <div class="pc-foot"><span class="pc-tag pc-ok"><i class="fas fa-check"></i> تم الحل: ${p.resolved}</span><span class="pc-tag pc-pend"><i class="fas fa-hourglass-half"></i> لم يتم: ${p.unresolved}</span></div>
+    </div>`;
+  if(isMgrOnly){
+    el.innerHTML=card('إحصائيات الشهر الحالي','fa-calendar-alt','#6366f1',pr.month);
+  }else{
+    el.innerHTML=
+      card('إحصائيات اليوم','fa-calendar-day','#06b6d4',pr.day)+
+      card('إحصائيات الشهر الحالي','fa-calendar-alt','#6366f1',pr.month)+
+      card('إحصائيات كلية','fa-globe','#10b981',pr.overall);
+  }
+}
 
 /* ── USER HOME (MOBILE) ── */
 async function loadUserHome(){try{const r=await api('stats.user');if(r&&r.success)renderUH(r);}catch(e){}}
