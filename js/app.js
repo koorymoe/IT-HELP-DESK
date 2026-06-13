@@ -94,9 +94,31 @@ function computeOverdue(t){
   return (Date.now()-created.getTime())>OVERDUE_HOURS*3600*1000;
 }
 
+/* ── EMAIL ACTION RESULT (from ticket-action redirects) ── */
+function handleActionResult(){
+  const m=location.hash.match(/^#act=(.+)$/);
+  if(!m)return;
+  history.replaceState(null,'',location.pathname+location.search);
+  try{
+    const data=JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+    const t=document.getElementById('ar-title'),ic=document.getElementById('ar-icon'),ms=document.getElementById('ar-msg'),lk=document.getElementById('ar-links');
+    if(!t||!ic||!ms||!lk)return;
+    t.innerHTML=`<i class="fas ${data.ok?'fa-check-circle':'fa-exclamation-triangle'}"></i> ${esc(data.title||'')}`;
+    ic.textContent=data.ok?'✅':'⚠️';
+    ms.innerHTML=data.msg||'';
+    lk.innerHTML=(data.links||[]).map(l=>{
+      if(l.cls==='item')return `<a href="${l.href}" class="btn btn-g" style="text-decoration:none;display:block">${esc(l.label)}</a>`;
+      const bg=l.cls==='green'?'var(--gr)':l.cls==='red'?'var(--re)':'var(--in)';
+      return `<a href="${l.href}" class="btn" style="text-decoration:none;display:block;background:${bg};color:#fff;border:none">${esc(l.label)}</a>`;
+    }).join('');
+    openM('ovAR');
+  }catch(e){}
+}
+
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded',()=>{
   checkSession();
+  handleActionResult();
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginPage').classList.contains('active'))doLogin();});
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js').catch(()=>{});

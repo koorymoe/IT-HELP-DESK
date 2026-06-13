@@ -14,25 +14,12 @@ const NOTIFY_FROM = Deno.env.get("NOTIFY_FROM_EMAIL") || `IT Help Desk <${GMAIL_
 
 const IT_ROLES = ["it", "it_manager", "admin", "tech"];
 
-function page(title: string, body: string, ok = true) {
-  const html = `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
-    <style>
-      body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px}
-      .card{max-width:480px;width:100%;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.08);overflow:hidden}
-      .head{background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:22px;text-align:center;color:#fff;font-weight:700;font-size:18px}
-      .body{padding:24px;text-align:center}
-      .icon{font-size:40px;margin-bottom:10px}
-      .msg{font-size:15px;color:${ok ? "#1e293b" : "#b91c1c"};line-height:1.8;margin-bottom:18px}
-      a.btn{display:inline-block;background:#6366f1;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;margin:6px}
-      a.btn.green{background:#10b981}
-      a.btn.red{background:#ef4444}
-      .item{display:block;padding:12px 16px;margin:6px 0;background:#f8fafc;border-radius:10px;text-decoration:none;color:#1e293b;font-weight:600;border:1px solid #e2e8f0}
-      .item:hover{background:#eef2ff}
-    </style></head>
-    <body><div class="card"><div class="head">🛠️ IT Help Desk</div><div class="body">${body}</div></div></body></html>`;
-  return new Response(new TextEncoder().encode(html), {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
+// Redirects back to the app with the result payload encoded in the URL hash,
+// so the SPA can show a native-looking modal instead of a raw function response.
+function page(title: string, body: string, ok = true, links: { label: string; href: string; cls: string }[] = []) {
+  const payload = { title, msg: body, ok, links };
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  return Response.redirect(`${APP_URL}#act=${b64}`, 302);
 }
 
 async function rest(path: string, init: RequestInit = {}) {
@@ -89,13 +76,13 @@ Deno.serve(async (req: Request) => {
   const ticketId = url.searchParams.get("ticket") || "";
   const email = url.searchParams.get("email") || "";
 
-  if (!ticketId) return page("خطأ", `<div class="icon">⚠️</div><div class="msg">رابط غير صالح</div>`, false);
+  if (!ticketId) return page("خطأ", "رابط غير صالح", false);
 
   // load ticket
   const tRes = await rest(`tickets?id=eq.${ticketId}&select=*`);
   const tickets = await tRes.json();
   const ticket = tickets && tickets[0];
-  if (!ticket) return page("خطأ", `<div class="icon">⚠️</div><div class="msg">البلاغ غير موجود</div>`, false);
+  if (!ticket) return page("خطأ", "البلاغ غير موجود", false);
 
   // load acting user by email
   let actor: any = null;
@@ -106,9 +93,9 @@ Deno.serve(async (req: Request) => {
   }
 
   if (action === "claim") {
-    if (!actor) return page("خطأ", `<div class="icon">⚠️</div><div class="msg">تعذر التحقق من هويتك</div>`, false);
+    if (!actor) return page("خطأ", "تعذر التحقق من هويتك", false);
     if (ticket.assigned_id && ticket.assigned_id !== actor.id) {
-      return page("تم الاستلام مسبقاً", `<div class="icon">ℹ️</div><div class="msg">هذا البلاغ تم استلامه مسبقاً من قبل <b>${ticket.assigned_name || ""}</b></div><a class="btn" href="${APP_URL}">فتح النظام</a>`, false);
+      return page("تم الاستلام مسبقاً", `هذا البلاغ تم استلامه مسبقاً من قبل <b>${ticket.assigned_name || ""}</b>`, false);
     }
     if (!ticket.assigned_id) {
       const patchRes = await rest(`tickets?id=eq.${ticketId}&assigned_id=is.null`, {
@@ -118,7 +105,7 @@ Deno.serve(async (req: Request) => {
       });
       const updated = await patchRes.json();
       if (!updated || !updated.length) {
-        return page("تم الاستلام مسبقاً", `<div class="icon">ℹ️</div><div class="msg">عذراً، تم استلام هذا البلاغ من قبل موظف آخر قبلك</div><a class="btn" href="${APP_URL}">فتح النظام</a>`, false);
+        return page("تم الاستلام مسبقاً", "عذراً، تم استلام هذا البلاغ من قبل موظف آخر قبلك", false);
       }
       // notify other IT staff that this ticket was claimed
       const othersRes = await rest(`users?role=in.(${IT_ROLES.join(",")})&select=id`);
@@ -132,30 +119,33 @@ Deno.serve(async (req: Request) => {
     }
     const resolveLink = `${SUPABASE_URL}/functions/v1/ticket-action?action=resolve&ticket=${ticketId}&email=${encodeURIComponent(email)}`;
     const unresolveLink = `${SUPABASE_URL}/functions/v1/ticket-action?action=unresolve&ticket=${ticketId}&email=${encodeURIComponent(email)}`;
-    return page("تم الاستلام", `<div class="icon">✅</div><div class="msg">تم استلام البلاغ بنجاح بواسطة <b>${actor.name}</b><br>عند إنجاز المهمة اختر الحالة المناسبة:</div>
-      <a class="btn green" href="${resolveLink}">تم الحل</a>
-      <a class="btn red" href="${unresolveLink}">لم يتم الحل</a>`);
+    return page("تم الاستلام", `تم استلام البلاغ بنجاح بواسطة <b>${actor.name}</b><br>عند إنجاز المهمة اختر الحالة المناسبة:`, true, [
+      { label: "تم الحل", href: resolveLink, cls: "green" },
+      { label: "لم يتم الحل", href: unresolveLink, cls: "red" },
+    ]);
   }
 
   if (action === "resolve" || action === "unresolve") {
-    if (!actor) return page("خطأ", `<div class="icon">⚠️</div><div class="msg">تعذر التحقق من هويتك</div>`, false);
+    if (!actor) return page("خطأ", "تعذر التحقق من هويتك", false);
     if (ticket.assigned_id !== actor.id) {
-      return page("غير مخوّل", `<div class="icon">⚠️</div><div class="msg">هذا البلاغ غير مُعيَّن لك</div>`, false);
+      return page("غير مخوّل", "هذا البلاغ غير مُعيَّن لك", false);
     }
     const newStatus = action === "resolve" ? "تم حل البلاغ" : "قيد المعالجة";
     const body: any = { status: newStatus };
     if (action === "resolve") body.solved_at = new Date().toISOString();
     await rest(`tickets?id=eq.${ticketId}`, { method: "PATCH", body: JSON.stringify(body) });
-    return page("تم التحديث", `<div class="icon">${action === "resolve" ? "🎉" : "🔄"}</div><div class="msg">تم تحديث حالة البلاغ إلى: <b>${newStatus}</b></div><a class="btn" href="${APP_URL}">فتح النظام</a>`);
+    return page("تم التحديث", `تم تحديث حالة البلاغ إلى: <b>${newStatus}</b>`, true);
   }
 
   if (action === "assignlist") {
     const sRes = await rest(`users?role=in.(${IT_ROLES.join(",")})&active=eq.true&select=id,name`);
     const staff = await sRes.json();
-    const items = (staff || []).map((s: any) =>
-      `<a class="item" href="${SUPABASE_URL}/functions/v1/ticket-action?action=assign&ticket=${ticketId}&staff=${s.id}&email=${encodeURIComponent(email)}">${s.name}</a>`
-    ).join("");
-    return page("تعيين البلاغ", `<div class="icon">👤</div><div class="msg">اختر الموظف المسؤول عن هذا البلاغ:</div>${items || '<div class="msg">لا يوجد موظفون</div>'}`);
+    const links = (staff || []).map((s: any) => ({
+      label: s.name,
+      href: `${SUPABASE_URL}/functions/v1/ticket-action?action=assign&ticket=${ticketId}&staff=${s.id}&email=${encodeURIComponent(email)}`,
+      cls: "item",
+    }));
+    return page("تعيين البلاغ", links.length ? "اختر الموظف المسؤول عن هذا البلاغ:" : "لا يوجد موظفون", true, links);
   }
 
   if (action === "assign") {
@@ -163,7 +153,7 @@ Deno.serve(async (req: Request) => {
     const sRes = await rest(`users?id=eq.${staffId}&select=id,name,email`);
     const staffArr = await sRes.json();
     const staff = staffArr && staffArr[0];
-    if (!staff) return page("خطأ", `<div class="icon">⚠️</div><div class="msg">الموظف غير موجود</div>`, false);
+    if (!staff) return page("خطأ", "الموظف غير موجود", false);
 
     await rest(`tickets?id=eq.${ticketId}`, {
       method: "PATCH",
@@ -184,8 +174,8 @@ Deno.serve(async (req: Request) => {
       await sendEmail(staff.email, "تم تعيينك لبلاغ جديد", `تم تعيينك لمعالجة البلاغ: <b>${ticket.title || ""}</b><br>الوصف: ${ticket.desc || ""}<br><br><a href="${SUPABASE_URL}/functions/v1/ticket-action?action=claim&ticket=${ticketId}&email=${encodeURIComponent(staff.email)}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;margin-top:10px">بدء المعالجة</a>`);
     }
 
-    return page("تم التعيين", `<div class="icon">✅</div><div class="msg">تم تعيين البلاغ إلى <b>${staff.name}</b> بنجاح</div><a class="btn" href="${APP_URL}">فتح النظام</a>`);
+    return page("تم التعيين", `تم تعيين البلاغ إلى <b>${staff.name}</b> بنجاح`, true);
   }
 
-  return page("خطأ", `<div class="icon">⚠️</div><div class="msg">إجراء غير معروف</div>`, false);
+  return page("خطأ", "إجراء غير معروف", false);
 });
