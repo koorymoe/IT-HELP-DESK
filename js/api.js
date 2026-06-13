@@ -592,6 +592,14 @@ const API={
     return{success:true,stats,recent};
   },
 
+  'stats.reset':async()=>{
+    if(!S.user||S.user.role!=='admin')return{success:false,message:'غير مخوّل'};
+    const{error}=await sb.from('tickets').delete().not('id','is',null);
+    if(error)return{success:false,message:error.message};
+    cc('dashboard');
+    return{success:true};
+  },
+
   'stats.tech':async()=>{
     if(!S.user)return{success:false};
     const{data:rows,error}=await sb.from('devices').select('*').eq('sent_to_tech',S.user.id);

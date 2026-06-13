@@ -15,7 +15,18 @@ function renderDash(r){
 }
 
 /* ── REPORTS ── */
+async function resetStats(){
+  if(!S.user||S.user.role!=='admin')return;
+  if(!confirm('هل أنت متأكد من تصفير جميع الإحصائيات؟ سيتم حذف جميع البلاغات بشكل نهائي ولا يمكن التراجع عن ذلك.'))return;
+  try{
+    const r=await api('stats.reset');
+    if(r&&r.success){toast('تم تصفير الإحصائيات بنجاح');loadReports();if(typeof loadDashboard==='function')loadDashboard();}
+    else toast(r&&r.message||'فشل التصفير',true);
+  }catch(e){toast('خطأ في الاتصال',true);}
+}
+
 async function loadReports(){
+  const w=document.getElementById('resetStatsBtnWrap');if(w)w.style.display=(S.user&&S.user.role==='admin')?'':'none';
   const c=gc('dashboard');const src=c||(await api('stats.dashboard').then(r=>r&&r.success?r:null).catch(()=>null));
   if(src){
     const{stats,byPriority,itPerformance,daily}=src;
