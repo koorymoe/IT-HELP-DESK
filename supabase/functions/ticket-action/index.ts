@@ -15,8 +15,7 @@ const NOTIFY_FROM = Deno.env.get("NOTIFY_FROM_EMAIL") || `IT Help Desk <${GMAIL_
 const IT_ROLES = ["it", "it_manager", "admin", "tech"];
 
 function page(title: string, body: string, ok = true) {
-  return new Response(
-    `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
+  const html = `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
     <style>
       body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px}
       .card{max-width:480px;width:100%;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.08);overflow:hidden}
@@ -30,9 +29,10 @@ function page(title: string, body: string, ok = true) {
       .item{display:block;padding:12px 16px;margin:6px 0;background:#f8fafc;border-radius:10px;text-decoration:none;color:#1e293b;font-weight:600;border:1px solid #e2e8f0}
       .item:hover{background:#eef2ff}
     </style></head>
-    <body><div class="card"><div class="head">🛠️ IT Help Desk</div><div class="body">${body}</div></div></body></html>`,
-    { headers: { "Content-Type": "text/html; charset=utf-8" } },
-  );
+    <body><div class="card"><div class="head">🛠️ IT Help Desk</div><div class="body">${body}</div></div></body></html>`;
+  return new Response(new TextEncoder().encode(html), {
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
 }
 
 async function rest(path: string, init: RequestInit = {}) {
