@@ -83,8 +83,15 @@ Deno.serve(async (req: Request) => {
       from,
       to: Array.isArray(to) ? to : [to],
       subject,
-      content: subject,
+      content: "auto",
       html,
+      mimeContent: [
+        {
+          mimeType: "text/html; charset=utf-8",
+          content: html,
+          transferEncoding: "quoted-printable",
+        },
+      ],
     });
     await client.close();
 
