@@ -80,7 +80,13 @@ async function sendEmail(to: string | string[], subject: string, message: string
       from: NOTIFY_FROM,
       to: Array.isArray(to) ? to : [to],
       subject,
-      html,
+      mimeContent: [
+        {
+          mimeType: "text/html; charset=UTF-8",
+          content: html,
+          transferEncoding: "base64",
+        },
+      ],
     });
     await client.close();
   } catch (_e) { /* ignore */ }
