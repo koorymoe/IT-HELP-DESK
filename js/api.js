@@ -276,6 +276,7 @@ const API={
   },
 
   'users.delete':async(data)=>{
+    await sb.from('tickets').update({assigned_id:null}).eq('assigned_id',data.userId);
     const{error}=await sb.from('users').delete().eq('id',data.userId);
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تم الحذف'};
