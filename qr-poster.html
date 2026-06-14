@@ -3,25 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>QR Code - IT Help Desk</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,Arial,sans-serif}
   body{background:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
   .box{background:#fff;border-radius:16px;padding:24px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.1)}
-  canvas{display:block;margin:0 auto 16px}
+  img{display:block;margin:0 auto 16px;width:400px;height:400px}
   a{display:inline-block;background:#1b2a6b;color:#fff;text-decoration:none;font-weight:700;padding:10px 24px;border-radius:8px;font-size:14px}
 </style>
 </head>
 <body>
   <div class="box">
-    <canvas id="qr"></canvas>
-    <a id="dl" download="itdesk-qr.png">تحميل الصورة PNG</a>
+    <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https%3A%2F%2Fkoorymoe.github.io%2FIT-HELP-DESK%2F" alt="QR Code">
+    <a id="dl" href="https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=https%3A%2F%2Fkoorymoe.github.io%2FIT-HELP-DESK%2F" download="itdesk-qr.png">تحميل الصورة PNG</a>
   </div>
-<script>
-const c=document.getElementById('qr');
-QRCode.toCanvas(c,'https://koorymoe.github.io/IT-HELP-DESK/',{width:400,margin:2,color:{dark:'#000000',light:'#ffffff'}},()=>{
-  document.getElementById('dl').href=c.toDataURL('image/png');
-});
-</script>
 </body>
 </html>
