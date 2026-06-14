@@ -50,13 +50,17 @@ function renderPeriodStats(pr){
       <div class="pc-main"><div class="pc-num">${p.total}</div><div class="pc-rate"><div class="pc-rate-ring" style="--p:${p.rate}">${p.rate}%</div><span>معدل الإنجاز</span></div></div>
       <div class="pc-foot"><span class="pc-tag pc-ok"><i class="fas fa-check"></i> تم الحل: ${p.resolved}</span><span class="pc-tag pc-pend"><i class="fas fa-hourglass-half"></i> لم يتم: ${p.unresolved}</span></div>
     </div>`;
-  if(isMgrOnly){
-    el.innerHTML=card('إحصائيات الشهر الحالي','fa-calendar-alt','#6366f1',pr.month);
-  }else{
+  if(role==='admin'){
     el.innerHTML=
       card('إحصائيات اليوم','fa-calendar-day','#06b6d4',pr.day)+
       card('إحصائيات الشهر الحالي','fa-calendar-alt','#6366f1',pr.month)+
       card('إحصائيات كلية','fa-globe','#10b981',pr.overall);
+  }else if(isMgrOnly){
+    el.innerHTML=card('إحصائيات الشهر الحالي','fa-calendar-alt','#6366f1',pr.month);
+  }else{
+    el.innerHTML=
+      card('إحصائيات اليوم','fa-calendar-day','#06b6d4',pr.day)+
+      card('إحصائيات الشهر الحالي','fa-calendar-alt','#6366f1',pr.month);
   }
 }
 

@@ -594,6 +594,8 @@ const API={
 
   'stats.reset':async()=>{
     if(!S.user||S.user.role!=='admin')return{success:false,message:'غير مخوّل'};
+    const{error:nErr}=await sb.from('notifications').delete().not('ticket_id','is',null);
+    if(nErr)return{success:false,message:nErr.message};
     const{error}=await sb.from('tickets').delete().not('id','is',null);
     if(error)return{success:false,message:error.message};
     cc('dashboard');
