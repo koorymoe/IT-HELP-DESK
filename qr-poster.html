@@ -2,57 +2,26 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>ملصق الدعم الفني - QR</title>
+<title>QR Code - IT Help Desk</title>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;font-family:'Tahoma','Segoe UI',Arial,sans-serif}
-  body{background:#0b1340;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-  .poster{
-    width:520px;
-    background:linear-gradient(160deg,#0b1340 0%,#1b2a6b 60%,#2a3f9e 100%);
-    border-radius:18px;
-    padding:30px 26px;
-    color:#fff;
-    text-align:center;
-    box-shadow:0 10px 40px rgba(0,0,0,.4);
-    position:relative;
-    overflow:hidden;
-  }
-  .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px}
-  .brand .logo{width:42px;height:42px;border-radius:10px;background:#fff;color:#1b2a6b;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}
-  .brand .txt h3{font-size:18px;font-weight:800;margin:0}
-  .brand .txt p{font-size:10px;color:#9fb4ff;margin:2px 0 0}
-  h1{font-size:26px;font-weight:900;line-height:1.5;margin-bottom:22px}
-  .qr-box{background:#fff;border-radius:16px;padding:18px;display:inline-block;margin-bottom:24px}
-  .qr-box canvas{display:block}
-  .steps{display:flex;gap:10px;justify-content:space-between}
-  .step{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 8px}
-  .step .num{width:26px;height:26px;border-radius:50%;background:#fff;color:#1b2a6b;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
-  .step .ttl{font-weight:800;font-size:13px;margin-bottom:4px}
-  .step .desc{font-size:10px;color:#c4d0ff;line-height:1.4}
-  .foot{margin-top:22px;font-size:11px;color:#8fa0e0}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,Arial,sans-serif}
+  body{background:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+  .box{background:#fff;border-radius:16px;padding:24px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+  canvas{display:block;margin:0 auto 16px}
+  a{display:inline-block;background:#1b2a6b;color:#fff;text-decoration:none;font-weight:700;padding:10px 24px;border-radius:8px;font-size:14px}
 </style>
 </head>
 <body>
-  <div class="poster">
-    <div class="brand">
-      <div class="logo"><i class="fas fa-tools"></i>🛠️</div>
-      <div class="txt">
-        <h3>IT Help Desk</h3>
-        <p>نظام الدعم الفني</p>
-      </div>
-    </div>
-    <h1>قسم التقني<br>الدعم الفني</h1>
-    <div class="qr-box"><canvas id="qr"></canvas></div>
-    <div class="steps">
-      <div class="step"><div class="num">1</div><div class="ttl">افتح الكاميرا</div><div class="desc">افتح تطبيق الكاميرا على جوالك</div></div>
-      <div class="step"><div class="num">2</div><div class="ttl">وجّه الكود</div><div class="desc">صوّب الكاميرا نحو الكود أعلاه</div></div>
-      <div class="step"><div class="num">3</div><div class="ttl">ادخل النظام</div><div class="desc">اضغط على الرابط وابدأ فوراً</div></div>
-    </div>
-    <div class="foot">koorymoe.github.io/IT-HELP-DESK</div>
+  <div class="box">
+    <canvas id="qr"></canvas>
+    <a id="dl" download="itdesk-qr.png">تحميل الصورة PNG</a>
   </div>
 <script>
-QRCode.toCanvas(document.getElementById('qr'), 'https://koorymoe.github.io/IT-HELP-DESK/', { width: 220, margin: 1, color:{dark:'#0b1340',light:'#ffffff'} });
+const c=document.getElementById('qr');
+QRCode.toCanvas(c,'https://koorymoe.github.io/IT-HELP-DESK/',{width:400,margin:2,color:{dark:'#000000',light:'#ffffff'}},()=>{
+  document.getElementById('dl').href=c.toDataURL('image/png');
+});
 </script>
 </body>
 </html>
