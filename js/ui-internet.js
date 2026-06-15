@@ -30,23 +30,40 @@ async function loadDeviceUsernames(){
 }
 function filterDeviceUsernames(){
   const sf=(document.getElementById('du-q')||{}).value?.trim().toLowerCase()||'';
-  renderDeviceUsernames((S.devUsers||[]).filter(d=>!sf||((d.username||'')+(d.deviceId||'')+(d.assignedTo||'')+(d.networkLabel||'')).toLowerCase().includes(sf)));
+  const net=(document.getElementById('du-net-filter')||{}).value||'';
+  renderDeviceUsernames((S.devUsers||[]).filter(d=>{
+    if(net&&d.networkLabel!==net)return false;
+    return !sf||((d.username||'')+(d.deviceId||'')+(d.assignedTo||'')+(d.networkLabel||'')).toLowerCase().includes(sf);
+  }));
 }
 function renderDeviceUsernames(items){
   const tb=document.getElementById('duTbody');if(!tb)return;
+  const sel=document.getElementById('du-net-filter');
+  if(sel&&!sel.dataset.filled){
+    const nets=[...new Set((S.devUsers||[]).map(d=>d.networkLabel).filter(Boolean))].sort();
+    sel.innerHTML='<option value="">كل الشبكات</option>'+nets.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    sel.dataset.filled='1';
+  }
   if(!items.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:16px;opacity:.5">لا توجد بيانات</td></tr>';return;}
   tb.innerHTML=items.map(d=>`<tr>
     <td>${esc(d.networkLabel)}</td>
     <td style="font-family:monospace">${esc(d.deviceId)}</td>
     <td style="font-family:monospace">${esc(d.username)}</td>
     <td style="font-family:monospace">${esc(d.password||'—')}</td>
-    <td style="font-size:.78rem">${esc(d.notes||'—')}</td>
+    <td><input value="${esc(d.notes||'')}" placeholder="ملاحظة..." style="width:100%;padding:4px 6px;font-size:11px" onchange="updateDeviceUsernameNotes('${esc(d.id)}',this.value)"/></td>
     <td>${d.assignedTo?`<span class="badge" style="background:var(--gr-l);color:var(--gr-d)">مستخدم: ${esc(d.assignedTo)}</span>`:'<span class="badge" style="background:var(--in-l);color:var(--in)">متاح</span>'}</td>
     <td style="white-space:nowrap">
       ${!d.assignedTo?`<button class="btn-sm" onclick="assignDeviceUsername('${esc(d.id)}')" title="تعيين لموظف"><i class="fas fa-user-plus"></i></button>`:''}
       <button class="btn-sm btn-danger" onclick="delDeviceUsername('${esc(d.id)}')"><i class="fas fa-trash"></i></button>
     </td>
   </tr>`).join('');
+}
+async function updateDeviceUsernameNotes(id,notes){
+  try{
+    const r=await api('device.username.update',{id,notes:notes.trim()});
+    if(r&&r.success){toast('✅ تم الحفظ');const it=(S.devUsers||[]).find(d=>d.id===id);if(it)it.notes=notes.trim();}
+    else toast(r?r.message:'خطأ',true);
+  }catch(e){toast('خطأ',true);}
 }
 async function addDeviceUsername(){
   const net=(document.getElementById('du-net')||{}).value?.trim()||'';

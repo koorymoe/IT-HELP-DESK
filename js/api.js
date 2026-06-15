@@ -261,16 +261,27 @@ const API={
     const{error}=await sb.from('users').insert(row);
     if(error)return{success:false,message:error.message};
     const deviceId=(data.deviceId||'').trim();
+    let dev=null;
     if(deviceId){
-      const{data:dev}=await sb.from('device_usernames').select('*').eq('device_id',deviceId).maybeSingle();
-      if(dev){
+      const{data:d1}=await sb.from('device_usernames').select('*').eq('device_id',deviceId).maybeSingle();
+      dev=d1;
+    }
+    if(!dev){
+      // auto-match: try matching device_usernames.device_id against the employee's full name
+      const{data:d2}=await sb.from('device_usernames').select('*').eq('device_id',fullName.trim()).maybeSingle();
+      dev=d2;
+    }
+    if(dev){
+      const{data:already}=await sb.from('internet_users').select('id').eq('username',dev.username).eq('network_label',dev.network_label).maybeSingle();
+      if(!already){
         await sb.from('internet_users').insert({
           emp_id:data.empId,name:fullName.trim(),dept:data.department||null,network_label:dev.network_label,
           username:dev.username,password:dev.password,device_id:dev.device_id,notes:dev.notes,updated_at:new Date().toISOString()
         });
-      }else{
-        return{success:true,message:'تم إنشاء الحساب، لكن رقم الجهاز غير موجود بقائمة الأجهزة'};
+        return{success:true,message:'تم إنشاء الحساب وتعيين يوزر الإنترنت تلقائياً: '+dev.username};
       }
+    }else if(deviceId){
+      return{success:true,message:'تم إنشاء الحساب، لكن رقم الجهاز غير موجود بقائمة الأجهزة'};
     }
     return{success:true,message:'تم إنشاء الحساب'};
   },
@@ -334,6 +345,11 @@ const API={
     const{error}=await sb.from('device_usernames').insert({network_label:data.networkLabel,device_id:data.deviceId,username:data.username,password:data.password||null,notes:data.notes||null});
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تمت الإضافة'};
+  },
+  'device.username.update':async(data)=>{
+    const{error}=await sb.from('device_usernames').update({notes:data.notes||null}).eq('id',data.id);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحفظ'};
   },
   'device.username.delete':async(data)=>{
     const{error}=await sb.from('device_usernames').delete().eq('id',data.id);
