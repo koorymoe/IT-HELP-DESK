@@ -185,9 +185,9 @@ async function loadMyInfo(){
       const list=r.internetUsers||[];
       const html=list.length
         ? list.map(iu=>`<div style="background:rgba(255,255,255,.12);border-radius:10px;padding:8px 10px;margin-top:6px">
-            ${iu.network_label?`<div style="font-size:11px;color:rgba(255,255,255,.6);font-weight:700">الشبكة: <span style="font-family:monospace">${esc(iu.network_label)}</span></div>`:''}
-            <div style="font-size:14px;color:#fff;margin-top:2px"><b>اسم المستخدم:</b> <span style="font-family:monospace;font-weight:900;letter-spacing:1px">${esc(iu.username)}</span></div>
-            ${iu.password?`<div style="font-size:14px;color:#fff;margin-top:2px"><b>كلمة المرور:</b> <span style="font-family:monospace;font-weight:900;letter-spacing:1px">${esc(iu.password)}</span></div>`:''}
+            ${iu.network_label?`<div style="font-size:13px;color:#fff;margin-top:2px"><b>الشبكة:</b> <span style="font-family:monospace;font-weight:900;letter-spacing:1px">${esc(iu.network_label)}</span></div>`:''}
+            <div style="font-size:14px;color:#fff;margin-top:2px"><b>اليوزر:</b> <span style="font-family:monospace;font-weight:900;letter-spacing:1px">${esc(iu.username)}</span></div>
+            ${iu.password?`<div style="font-size:14px;color:#fff;margin-top:2px"><b>الرمز:</b> <span style="font-family:monospace;font-weight:900;letter-spacing:1px">${esc(iu.password)}</span></div>`:''}
           </div>`).join('')
         : '<div style="font-size:14px;color:#fff;font-weight:700">لا يوجد حساب إنترنت — اضغط "إضافة يوزر"</div>';
       const txt=list.length
