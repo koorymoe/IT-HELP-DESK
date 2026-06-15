@@ -148,6 +148,7 @@
 </select></div>
 <div class="fg-r fg-f" id="email-row" style="display:none"><label>إيميل الإشعارات</label><input id="nu-em" type="email" placeholder="name@company.com" dir="ltr"/></div>
 <div class="fg-r fg-f"><label>كلمة المرور *</label><div class="pw-wrap"><input id="nu-pw" type="password" placeholder="ادخل كلمة المرور" autocomplete="new-password"/><button class="pw-btn-d" type="button" onclick="tpw('nu-pw','nu-ei')"><i class="fas fa-eye" id="nu-ei"></i></button></div></div>
+<div class="fg-r fg-f"><label>رقم الجهاز/الحاسبة (اختياري — لربط يوزر إنترنت تلقائياً)</label><input id="nu-dev" placeholder="مثال: F09LP085" dir="ltr"/></div>
 </div>
 <div class="f-acts"><button class="btn btn-p" onclick="subUser()"><i class="fas fa-save"></i>إضافة الموظف</button></div>
 </div>
@@ -307,9 +308,12 @@
 <div class="fg-r"><label>رمز الشبكة</label><input id="du-net" placeholder="HA-12" dir="ltr"/></div>
 <div class="fg-r"><label>رقم الجهاز/الحاسبة</label><input id="du-dev" placeholder="HA-12-005" dir="ltr"/></div>
 <div class="fg-r"><label>اليوزر</label><input id="du-user" placeholder="username" dir="ltr"/></div>
+<div class="fg-r"><label>كلمة المرور</label><input id="du-pass" placeholder="password" dir="ltr"/></div>
+<div class="fg-r fg-f"><label>ملاحظات</label><input id="du-notes" placeholder="ملاحظات (اختياري)"/></div>
 </div>
 <div class="f-acts"><button class="btn btn-p" onclick="addDeviceUsername()"><i class="fas fa-plus"></i> إضافة</button></div>
-<div class="tw"><table><thead><tr><th>الشبكة</th><th>رقم الجهاز</th><th>اليوزر</th><th></th></tr></thead><tbody id="duTbody"></tbody></table></div>
+<div style="margin:10px 0"><input id="du-q" placeholder="🔍 بحث باليوزر / رقم الجهاز / الموظف..." style="width:100%;padding:8px 10px;font-size:12px" oninput="filterDeviceUsernames()"/></div>
+<div class="tw"><table><thead><tr><th>الشبكة</th><th>رقم الجهاز</th><th>اليوزر</th><th>كلمة المرور</th><th>ملاحظات</th><th>الحالة</th><th></th></tr></thead><tbody id="duTbody"></tbody></table></div>
 </div>
 </div>
 

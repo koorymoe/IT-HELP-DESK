@@ -53,12 +53,13 @@ async function subUser(e){
   const pw=(document.getElementById('nu-pw')||{value:''}).value;
   const rl=(document.getElementById('nu-ro')||{value:'user'}).value;
   const dp=(document.getElementById('nu-dp')||{value:''}).value.trim();
+  const dv=(document.getElementById('nu-dev')||{value:''}).value.trim();
   if(!fn||!ln||!empId||!pw){toast('يرجى ملء جميع الحقول المطلوبة',true);return;}
   try{
-    const r=await api('users.create',{firstName:fn,lastName:ln,empId:empId,phone:ph,email:em,password:pw,role:rl,department:dp});
+    const r=await api('users.create',{firstName:fn,lastName:ln,empId:empId,phone:ph,email:em,password:pw,role:rl,department:dp,deviceId:dv});
     if(r&&r.success){
       toast('✅ '+r.message);
-      ['nu-f','nu-l','nu-id','nu-ph','nu-em','nu-pw'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      ['nu-f','nu-l','nu-id','nu-ph','nu-em','nu-pw','nu-dev'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
       goTab('users',document.querySelector('[data-t="users"]'));
     }else toast(r?r.message:'خطأ',true);
   }catch(err){toast('خطأ',true);}

@@ -184,7 +184,7 @@ async function loadMyInfo(){
     if(r&&r.success){
       const list=r.internetUsers||[];
       const txt=list.length
-        ? list.map(iu=>'حساب الإنترنت'+(iu.network_label?' ('+iu.network_label+')':'')+': '+iu.username).join(' | ')
+        ? list.map(iu=>'حساب الإنترنت'+(iu.network_label?' ('+iu.network_label+')':'')+': '+iu.username+(iu.password?' / كلمة المرور: '+iu.password:'')).join(' | ')
         : 'غير مُعيَّن';
       setT('inf-internet',txt);setT('inf-tickets',r.ticketCount||'0');if(r.phone)setT('inf-phone',r.phone);
       setT('inf-network',r.networkLabel||'—');S.myNetworkLabel=r.networkLabel||'';
@@ -235,7 +235,7 @@ async function aiSubmit(){
   }
   try{
     const r=await api('internet.myAdd',payload);
-    if(r&&r.success){toast('✅ تمت الإضافة: '+r.username);closeM('ovAddInet');loadMyInfo();}
+    if(r&&r.success){toast('✅ تمت الإضافة: '+r.username+(r.password?' / '+r.password:''));closeM('ovAddInet');loadMyInfo();}
     else toast(r?r.message:'خطأ',true);
   }catch(e){toast('خطأ',true);}
 }

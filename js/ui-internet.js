@@ -20,28 +20,44 @@ async function loadInternetUsers(){
 /* ── DEVICE-USERNAME MAPPING (admin) ── */
 async function loadDeviceUsernames(){
   const tb=document.getElementById('duTbody');if(!tb)return;
-  tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:16px">'+skel(2)+'</td></tr>';
+  tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:16px">'+skel(2)+'</td></tr>';
   try{
     const r=await api('device.username.list');
-    if(!r||!r.success){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:16px;opacity:.5">فشل التحميل</td></tr>';return;}
+    if(!r||!r.success){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:16px;opacity:.5">فشل التحميل</td></tr>';return;}
     S.devUsers=r.items||[];
-    if(!S.devUsers.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:16px;opacity:.5">لا توجد بيانات</td></tr>';return;}
-    tb.innerHTML=S.devUsers.map(d=>`<tr>
-      <td>${esc(d.networkLabel)}</td>
-      <td style="font-family:monospace">${esc(d.deviceId)}</td>
-      <td style="font-family:monospace">${esc(d.username)}</td>
-      <td><button class="btn-sm btn-danger" onclick="delDeviceUsername('${esc(d.id)}')"><i class="fas fa-trash"></i></button></td>
-    </tr>`).join('');
-  }catch(e){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:16px;opacity:.5">خطأ</td></tr>';}
+    renderDeviceUsernames(S.devUsers);
+  }catch(e){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:16px;opacity:.5">خطأ</td></tr>';}
+}
+function filterDeviceUsernames(){
+  const sf=(document.getElementById('du-q')||{}).value?.trim().toLowerCase()||'';
+  renderDeviceUsernames((S.devUsers||[]).filter(d=>!sf||((d.username||'')+(d.deviceId||'')+(d.assignedTo||'')+(d.networkLabel||'')).toLowerCase().includes(sf)));
+}
+function renderDeviceUsernames(items){
+  const tb=document.getElementById('duTbody');if(!tb)return;
+  if(!items.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:16px;opacity:.5">لا توجد بيانات</td></tr>';return;}
+  tb.innerHTML=items.map(d=>`<tr>
+    <td>${esc(d.networkLabel)}</td>
+    <td style="font-family:monospace">${esc(d.deviceId)}</td>
+    <td style="font-family:monospace">${esc(d.username)}</td>
+    <td style="font-family:monospace">${esc(d.password||'—')}</td>
+    <td style="font-size:.78rem">${esc(d.notes||'—')}</td>
+    <td>${d.assignedTo?`<span class="badge" style="background:var(--gr-l);color:var(--gr-d)">مستخدم: ${esc(d.assignedTo)}</span>`:'<span class="badge" style="background:var(--in-l);color:var(--in)">متاح</span>'}</td>
+    <td style="white-space:nowrap">
+      ${!d.assignedTo?`<button class="btn-sm" onclick="assignDeviceUsername('${esc(d.id)}')" title="تعيين لموظف"><i class="fas fa-user-plus"></i></button>`:''}
+      <button class="btn-sm btn-danger" onclick="delDeviceUsername('${esc(d.id)}')"><i class="fas fa-trash"></i></button>
+    </td>
+  </tr>`).join('');
 }
 async function addDeviceUsername(){
   const net=(document.getElementById('du-net')||{}).value?.trim()||'';
   const dev=(document.getElementById('du-dev')||{}).value?.trim()||'';
   const usr=(document.getElementById('du-user')||{}).value?.trim()||'';
-  if(!net||!dev||!usr){toast('يرجى تعبئة جميع الحقول',true);return;}
+  const pass=(document.getElementById('du-pass')||{}).value?.trim()||'';
+  const notes=(document.getElementById('du-notes')||{}).value?.trim()||'';
+  if(!net||!dev||!usr){toast('يرجى تعبئة الشبكة ورقم الجهاز واليوزر',true);return;}
   try{
-    const r=await api('device.username.add',{networkLabel:net,deviceId:dev,username:usr});
-    if(r&&r.success){toast('✅ '+r.message);['du-net','du-dev','du-user'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});loadDeviceUsernames();}
+    const r=await api('device.username.add',{networkLabel:net,deviceId:dev,username:usr,password:pass,notes});
+    if(r&&r.success){toast('✅ '+r.message);['du-net','du-dev','du-user','du-pass','du-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});loadDeviceUsernames();}
     else toast(r?r.message:'خطأ',true);
   }catch(e){toast('خطأ',true);}
 }
@@ -50,6 +66,18 @@ async function delDeviceUsername(id){
   try{
     const r=await api('device.username.delete',{id});
     if(r&&r.success){toast('✅ تم الحذف');loadDeviceUsernames();}
+    else toast(r?r.message:'خطأ',true);
+  }catch(e){toast('خطأ',true);}
+}
+async function assignDeviceUsername(rowId){
+  const empId=prompt('أدخل رقم البصمة (Employee ID) للموظف المراد تعيينه:');
+  if(!empId)return;
+  try{
+    const users=S.users.length?S.users:await fetchUsers();
+    const u=users.find(x=>String(x.empId).trim()===empId.trim());
+    if(!u){toast('لا يوجد موظف بهذا رقم البصمة',true);return;}
+    const r=await api('device.username.assign',{deviceRowId:rowId,userId:u.id});
+    if(r&&r.success){toast('✅ '+r.message);loadDeviceUsernames();}
     else toast(r?r.message:'خطأ',true);
   }catch(e){toast('خطأ',true);}
 }
