@@ -31,8 +31,11 @@ async function loadDeviceUsernames(){
 function filterDeviceUsernames(){
   const sf=(document.getElementById('du-q')||{}).value?.trim().toLowerCase()||'';
   const net=(document.getElementById('du-net-filter')||{}).value||'';
+  const status=(document.getElementById('du-status-filter')||{}).value||'';
   renderDeviceUsernames((S.devUsers||[]).filter(d=>{
     if(net&&d.networkLabel!==net)return false;
+    if(status==='new'&&d.assignedTo)return false;
+    if(status==='used'&&!d.assignedTo)return false;
     return !sf||((d.username||'')+(d.deviceId||'')+(d.assignedTo||'')+(d.networkLabel||'')).toLowerCase().includes(sf);
   }));
 }

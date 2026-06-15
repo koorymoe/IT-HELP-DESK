@@ -312,8 +312,15 @@
 <div class="fg-r fg-f"><label>ملاحظات</label><input id="du-notes" placeholder="ملاحظات (اختياري)"/></div>
 </div>
 <div class="f-acts"><button class="btn btn-p" onclick="addDeviceUsername()"><i class="fas fa-plus"></i> إضافة</button></div>
-<div style="margin:10px 0"><label style="display:block;font-size:12px;margin-bottom:6px;font-weight:600">فلترة بالشبكة</label><select id="du-net-filter" style="width:100%;padding:10px 12px;font-size:13px" onchange="filterDeviceUsernames()"><option value="">كل الشبكات</option></select></div>
-<div style="margin:10px 0"><input id="du-q" placeholder="🔍 بحث باليوزر / رقم الجهاز / الموظف..." style="width:100%;padding:10px 12px;font-size:13px" oninput="filterDeviceUsernames()"/></div>
+<div style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap">
+<select id="du-net-filter" style="width:110px;padding:10px 8px;font-size:13px" onchange="filterDeviceUsernames()"><option value="">كل الشبكات</option></select>
+<select id="du-status-filter" style="width:120px;padding:10px 8px;font-size:13px" onchange="filterDeviceUsernames()">
+  <option value="">الكل</option>
+  <option value="new">جديد (متاح)</option>
+  <option value="used">مستخدم</option>
+</select>
+<input id="du-q" placeholder="🔍 بحث باليوزر / رقم الجهاز / الموظف..." style="flex:1;min-width:200px;padding:10px 12px;font-size:13px" oninput="filterDeviceUsernames()"/>
+</div>
 <div class="tw"><table><thead><tr><th>الشبكة</th><th>رقم الجهاز</th><th>اليوزر</th><th>كلمة المرور</th><th>ملاحظات</th><th>الحالة</th><th></th></tr></thead><tbody id="duTbody"></tbody></table></div>
 </div>
 </div>
