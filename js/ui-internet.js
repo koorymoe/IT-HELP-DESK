@@ -10,6 +10,48 @@ async function loadInternetUsers(){
     S.inetUsers=r.users||[];
     renderIUsers(S.inetUsers);
   }catch(e){el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;opacity:.5">خطأ</td></tr>';}
+  const devCard=document.getElementById('devUserCard');
+  if(devCard){
+    if(['admin','it_manager'].includes(S.user?.role)){devCard.style.display='';loadDeviceUsernames();}
+    else devCard.style.display='none';
+  }
+}
+
+/* ── DEVICE-USERNAME MAPPING (admin) ── */
+async function loadDeviceUsernames(){
+  const tb=document.getElementById('duTbody');if(!tb)return;
+  tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:16px">'+skel(2)+'</td></tr>';
+  try{
+    const r=await api('device.username.list');
+    if(!r||!r.success){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:16px;opacity:.5">فشل التحميل</td></tr>';return;}
+    S.devUsers=r.items||[];
+    if(!S.devUsers.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:16px;opacity:.5">لا توجد بيانات</td></tr>';return;}
+    tb.innerHTML=S.devUsers.map(d=>`<tr>
+      <td>${esc(d.networkLabel)}</td>
+      <td style="font-family:monospace">${esc(d.deviceId)}</td>
+      <td style="font-family:monospace">${esc(d.username)}</td>
+      <td><button class="btn-sm btn-danger" onclick="delDeviceUsername('${esc(d.id)}')"><i class="fas fa-trash"></i></button></td>
+    </tr>`).join('');
+  }catch(e){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:16px;opacity:.5">خطأ</td></tr>';}
+}
+async function addDeviceUsername(){
+  const net=(document.getElementById('du-net')||{}).value?.trim()||'';
+  const dev=(document.getElementById('du-dev')||{}).value?.trim()||'';
+  const usr=(document.getElementById('du-user')||{}).value?.trim()||'';
+  if(!net||!dev||!usr){toast('يرجى تعبئة جميع الحقول',true);return;}
+  try{
+    const r=await api('device.username.add',{networkLabel:net,deviceId:dev,username:usr});
+    if(r&&r.success){toast('✅ '+r.message);['du-net','du-dev','du-user'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});loadDeviceUsernames();}
+    else toast(r?r.message:'خطأ',true);
+  }catch(e){toast('خطأ',true);}
+}
+async function delDeviceUsername(id){
+  if(!confirm('حذف هذا الربط؟'))return;
+  try{
+    const r=await api('device.username.delete',{id});
+    if(r&&r.success){toast('✅ تم الحذف');loadDeviceUsernames();}
+    else toast(r?r.message:'خطأ',true);
+  }catch(e){toast('خطأ',true);}
 }
 
 function filterIUsers(){

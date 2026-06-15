@@ -300,6 +300,45 @@ const API={
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تم الحذف'};
   },
+  'departments.update':async(data)=>{
+    const{error}=await sb.from('departments').update({network_label:data.networkLabel||null}).eq('id',data.id);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحفظ'};
+  },
+
+  /* ---------- DEVICE USERNAME MAPPING ---------- */
+  'device.username.list':async()=>{
+    const{data:rows,error}=await sb.from('device_usernames').select('*').order('network_label');
+    if(error)return{success:false,message:error.message};
+    return{success:true,items:(rows||[]).map(r=>({id:r.id,networkLabel:r.network_label,deviceId:r.device_id,username:r.username}))};
+  },
+  'device.username.add':async(data)=>{
+    const{error}=await sb.from('device_usernames').insert({network_label:data.networkLabel,device_id:data.deviceId,username:data.username});
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تمت الإضافة'};
+  },
+  'device.username.delete':async(data)=>{
+    const{error}=await sb.from('device_usernames').delete().eq('id',data.id);
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم الحذف'};
+  },
+
+  /* ---------- SELF-SERVICE ADD INTERNET USERNAME ---------- */
+  'internet.myAdd':async(data)=>{
+    if(!S.user)return{success:false,message:'غير مسجل'};
+    const{data:u}=await sb.from('users').select('emp_id,name,dept').eq('id',S.user.id).single();
+    if(!u||!u.emp_id)return{success:false,message:'رقم البصمة غير موجود لحسابك'};
+    let networkLabel=data.networkLabel||'',username=(data.username||'').trim();
+    if(data.kind==='device'){
+      const{data:row}=await sb.from('device_usernames').select('*').eq('device_id',(data.deviceId||'').trim()).maybeSingle();
+      if(!row)return{success:false,message:'رقم الجهاز غير موجود بقائمة الأجهزة'};
+      networkLabel=row.network_label;username=row.username;
+    }
+    if(!username)return{success:false,message:'يرجى إدخال اليوزر'};
+    const{error}=await sb.from('internet_users').insert({emp_id:u.emp_id,name:u.name,dept:u.dept,network_label:networkLabel,username,updated_at:new Date().toISOString()});
+    if(error)return{success:false,message:error.message};
+    return{success:true,username,networkLabel,message:'تمت الإضافة بنجاح'};
+  },
 
   /* ---------- DEVICES ---------- */
   'devices.list':async(data)=>{
@@ -510,7 +549,12 @@ const API={
       const{data:rows}=await sb.from('internet_users').select('id,network_label,username,dept').eq('emp_id',u.emp_id);
       internetUsers=rows||[];
     }
-    return{success:true,internetUsers,internetUser:internetUsers[0]?internetUsers[0].username:null,phone:u?u.phone:null,ticketCount:count||0};
+    let networkLabel='';
+    if(u&&u.dept){
+      const{data:d}=await sb.from('departments').select('network_label').eq('name',u.dept).maybeSingle();
+      networkLabel=(d&&d.network_label)||'';
+    }
+    return{success:true,internetUsers,internetUser:internetUsers[0]?internetUsers[0].username:null,phone:u?u.phone:null,ticketCount:count||0,networkLabel};
   },
 
   'stats.periods':async()=>{

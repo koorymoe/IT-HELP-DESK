@@ -99,8 +99,9 @@ async function loadDepts(){
     const depts=(r&&r.success)?r.departments||[]:[];
     DEPTS=depts;
     if(el){
-      el.innerHTML=depts.length?depts.map(d=>`<div class="guide-card" style="display:flex;align-items:center;justify-content:space-between">
-        <span><i class="fas fa-building" style="margin-left:8px;color:var(--in)"></i>${esc(d.name)}</span>
+      el.innerHTML=depts.length?depts.map(d=>`<div class="guide-card" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span style="flex:1"><i class="fas fa-building" style="margin-left:8px;color:var(--in)"></i>${esc(d.name)}</span>
+        <input value="${esc(d.network_label||'')}" placeholder="رمز الشبكة" dir="ltr" style="width:110px;padding:6px 10px;font-size:11px" onchange="saveDeptNetwork('${esc(d.id)}',this.value)"/>
         ${['admin','it_manager'].includes(S.user?.role)?`<button class="btn-sm btn-danger" onclick="deleteDept('${esc(d.id)}')"><i class="fas fa-trash"></i></button>`:''}
       </div>`).join(''):'<p style="opacity:.5;text-align:center;padding:32px">لا يوجد أقسام بعد</p>';
     }
@@ -115,6 +116,13 @@ async function addDept(){
   try{
     const r=await api('departments.add',{name});
     if(r&&r.success){toast('✅ تمت الإضافة');if(inp)inp.value='';loadDepts();}
+    else toast(r?r.message:'خطأ',true);
+  }catch(e){toast('خطأ',true);}
+}
+async function saveDeptNetwork(id,val){
+  try{
+    const r=await api('departments.update',{id,networkLabel:val.trim()});
+    if(r&&r.success){toast('✅ تم الحفظ');loadDepts();}
     else toast(r?r.message:'خطأ',true);
   }catch(e){toast('خطأ',true);}
 }

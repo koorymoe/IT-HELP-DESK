@@ -187,7 +187,8 @@ async function loadMyInfo(){
         ? list.map(iu=>'حساب الإنترنت'+(iu.network_label?' ('+iu.network_label+')':'')+': '+iu.username).join(' | ')
         : 'غير مُعيَّن';
       setT('inf-internet',txt);setT('inf-tickets',r.ticketCount||'0');if(r.phone)setT('inf-phone',r.phone);
-      saveMyInfoCache(u.empId,{internet:txt,tickets:r.ticketCount||'0',phone:r.phone||u.phone});
+      setT('inf-network',r.networkLabel||'—');S.myNetworkLabel=r.networkLabel||'';
+      saveMyInfoCache(u.empId,{internet:txt,tickets:r.ticketCount||'0',phone:r.phone||u.phone,networkLabel:r.networkLabel||''});
     }
     else{setT('inf-internet','غير مُعيَّن');}
   }catch(e){
@@ -196,9 +197,45 @@ async function loadMyInfo(){
       setT('inf-internet',cached.data.internet);
       setT('inf-tickets',cached.data.tickets);
       if(cached.data.phone)setT('inf-phone',cached.data.phone);
+      if(cached.data.networkLabel)setT('inf-network',cached.data.networkLabel);
       showOfflineInfoBadge(true);
     }else{
       setT('inf-internet','غير متاح');
     }
   }
+}
+
+/* ── SELF-SERVICE: ADD INTERNET USERNAME ── */
+let AI_KIND='';
+function openAddInet(){
+  AI_KIND='';
+  document.getElementById('ai-step1').style.display='block';
+  document.getElementById('ai-step2').style.display='none';
+  document.getElementById('ai-username').value='';
+  document.getElementById('ai-deviceid').value='';
+  openM('ovAddInet');
+}
+function aiChoose(kind){
+  AI_KIND=kind;
+  document.getElementById('ai-step1').style.display='none';
+  document.getElementById('ai-step2').style.display='block';
+  document.getElementById('ai-personal').style.display=kind==='personal'?'':'none';
+  document.getElementById('ai-device').style.display=kind==='device'?'':'none';
+}
+async function aiSubmit(){
+  const payload={kind:AI_KIND};
+  if(AI_KIND==='personal'){
+    const v=document.getElementById('ai-username').value.trim();
+    if(!v){toast('ادخل اليوزر',true);return;}
+    payload.username=v;payload.networkLabel=S.myNetworkLabel||'';
+  }else{
+    const v=document.getElementById('ai-deviceid').value.trim();
+    if(!v){toast('ادخل رقم الجهاز',true);return;}
+    payload.deviceId=v;
+  }
+  try{
+    const r=await api('internet.myAdd',payload);
+    if(r&&r.success){toast('✅ تمت الإضافة: '+r.username);closeM('ovAddInet');loadMyInfo();}
+    else toast(r?r.message:'خطأ',true);
+  }catch(e){toast('خطأ',true);}
 }
