@@ -183,21 +183,28 @@ async function loadMyInfo(){
     const r=await api('user.myInfo');
     if(r&&r.success){
       const list=r.internetUsers||[];
+      const html=list.length
+        ? list.map(iu=>`<div style="background:rgba(255,255,255,.12);border-radius:10px;padding:8px 10px;margin-top:6px">
+            ${iu.network_label?`<div style="font-size:11px;color:rgba(255,255,255,.6);font-weight:700">الشبكة: <span style="font-family:monospace">${esc(iu.network_label)}</span></div>`:''}
+            <div style="font-size:14px;color:#fff;margin-top:2px"><b>اسم المستخدم:</b> <span style="font-family:monospace;font-weight:900;letter-spacing:1px">${esc(iu.username)}</span></div>
+            ${iu.password?`<div style="font-size:14px;color:#fff;margin-top:2px"><b>كلمة المرور:</b> <span style="font-family:monospace;font-weight:900;letter-spacing:1px">${esc(iu.password)}</span></div>`:''}
+          </div>`).join('')
+        : '<div style="font-size:14px;color:#fff;font-weight:700">لا يوجد حساب إنترنت — اضغط "إضافة يوزر"</div>';
       const txt=list.length
         ? list.map(iu=>'حساب الإنترنت'+(iu.network_label?' ('+iu.network_label+')':'')+': '+iu.username+(iu.password?' / كلمة المرور: '+iu.password:'')).join(' | ')
         : 'غير مُعيَّن';
-      setT('inf-internet',txt);setT('inf-tickets',r.ticketCount||'0');if(r.phone)setT('inf-phone',r.phone);
-      setT('inf-network',r.networkLabel||'—');S.myNetworkLabel=r.networkLabel||'';
-      saveMyInfoCache(u.empId,{internet:txt,tickets:r.ticketCount||'0',phone:r.phone||u.phone,networkLabel:r.networkLabel||''});
+      const elI=document.getElementById('inf-internet');if(elI)elI.innerHTML=html;
+      setT('inf-tickets',r.ticketCount||'0');if(r.phone)setT('inf-phone',r.phone);
+      S.myNetworkLabel=r.networkLabel||(list[0]&&list[0].network_label)||'';
+      saveMyInfoCache(u.empId,{internet:txt,internetHtml:html,tickets:r.ticketCount||'0',phone:r.phone||u.phone,networkLabel:r.networkLabel||''});
     }
-    else{setT('inf-internet','غير مُعيَّن');}
+    else{const elI=document.getElementById('inf-internet');if(elI)elI.textContent='غير مُعيَّن';}
   }catch(e){
     const cached=loadMyInfoCache(u.empId);
     if(cached&&cached.data){
-      setT('inf-internet',cached.data.internet);
+      const elI=document.getElementById('inf-internet');if(elI)elI.innerHTML=cached.data.internetHtml||esc(cached.data.internet);
       setT('inf-tickets',cached.data.tickets);
       if(cached.data.phone)setT('inf-phone',cached.data.phone);
-      if(cached.data.networkLabel)setT('inf-network',cached.data.networkLabel);
       showOfflineInfoBadge(true);
     }else{
       setT('inf-internet','غير متاح');
