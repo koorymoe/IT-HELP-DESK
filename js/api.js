@@ -336,10 +336,14 @@ const API={
     const{data:used}=await sb.from('internet_users').select('device_id,name,emp_id').not('device_id','is',null);
     const usedMap={};
     (used||[]).forEach(u=>{if(u.device_id)usedMap[u.device_id]={name:u.name,empId:u.emp_id};});
-    return{success:true,items:(rows||[]).map(r=>({
-      id:r.id,networkLabel:r.network_label,deviceId:r.device_id,username:r.username,password:r.password,notes:r.notes,
-      assignedTo:usedMap[r.device_id]?usedMap[r.device_id].name:null
-    }))};
+    return{success:true,items:(rows||[]).map(r=>{
+      const linked=usedMap[r.device_id];
+      const isSpare=/^احتياطي/.test(r.device_id||'');
+      return{
+        id:r.id,networkLabel:r.network_label,deviceId:r.device_id,username:r.username,password:r.password,notes:r.notes,
+        assignedTo:linked?linked.name:(isSpare?null:r.device_id)
+      };
+    })};
   },
   'device.username.add':async(data)=>{
     const{error}=await sb.from('device_usernames').insert({network_label:data.networkLabel,device_id:data.deviceId,username:data.username,password:data.password||null,notes:data.notes||null});

@@ -312,7 +312,8 @@
 <div class="fg-r fg-f"><label>ملاحظات</label><input id="du-notes" placeholder="ملاحظات (اختياري)"/></div>
 </div>
 <div class="f-acts"><button class="btn btn-p" onclick="addDeviceUsername()"><i class="fas fa-plus"></i> إضافة</button></div>
-<div style="display:flex;gap:8px;margin:10px 0"><select id="du-net-filter" style="padding:8px 10px;font-size:12px" onchange="filterDeviceUsernames()"><option value="">كل الشبكات</option></select><input id="du-q" placeholder="🔍 بحث باليوزر / رقم الجهاز / الموظف..." style="flex:1;padding:8px 10px;font-size:12px" oninput="filterDeviceUsernames()"/></div>
+<div style="margin:10px 0"><label style="display:block;font-size:12px;margin-bottom:6px;font-weight:600">فلترة بالشبكة</label><select id="du-net-filter" style="width:100%;padding:10px 12px;font-size:13px" onchange="filterDeviceUsernames()"><option value="">كل الشبكات</option></select></div>
+<div style="margin:10px 0"><input id="du-q" placeholder="🔍 بحث باليوزر / رقم الجهاز / الموظف..." style="width:100%;padding:10px 12px;font-size:13px" oninput="filterDeviceUsernames()"/></div>
 <div class="tw"><table><thead><tr><th>الشبكة</th><th>رقم الجهاز</th><th>اليوزر</th><th>كلمة المرور</th><th>ملاحظات</th><th>الحالة</th><th></th></tr></thead><tbody id="duTbody"></tbody></table></div>
 </div>
 </div>
