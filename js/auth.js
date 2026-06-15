@@ -142,7 +142,8 @@ function checkURLParams(){
       setTimeout(async()=>{
         S.tid=assignTid;
         const users=S.users.length?S.users:await fetchUsers();
-        const it=users.filter(u=>['it','admin','it_manager','tech'].includes(u.role)&&u.active);
+        const allowed=S.user.role==='manager'?['it']:['it','admin','it_manager','tech'];
+        const it=users.filter(u=>allowed.includes(u.role)&&u.active);
         document.getElementById('asgn-sl').innerHTML=it.map(u=>`<option value="${esc(u.id)}">${esc(u.firstName)} ${esc(u.lastName)} — ${ROLE_L[u.role]}</option>`).join('');
         openM('ovAsgn');
       },1500);

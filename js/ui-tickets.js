@@ -134,7 +134,7 @@ async function claimFromNotif(tid,btn){
   }catch(e){toast('خطأ',true);btn.disabled=false;btn.innerHTML='<i class="fas fa-hand-pointer"></i> استلام';}
 }
 async function doUnasgn(tid){if(!confirm('إلغاء تعيين هذا البلاغ؟'))return;try{const r=await api('tickets.unassign',{ticketId:tid});if(r&&r.success){toast('✅ '+r.message);cc();loadTickets();}else toast(r?r.message:'خطأ',true);}catch(e){}}
-async function openAsgn(tid){S.tid=tid;const users=S.users.length?S.users:await fetchUsers();const it=users.filter(u=>['it','admin','it_manager','tech'].includes(u.role)&&u.active);document.getElementById('asgn-sl').innerHTML=it.map(u=>`<option value="${esc(u.id)}">${esc(u.firstName)} ${esc(u.lastName)} — ${ROLE_L[u.role]}</option>`).join('');openM('ovAsgn');}
+async function openAsgn(tid){S.tid=tid;const users=S.users.length?S.users:await fetchUsers();const allowed=S.user&&S.user.role==='manager'?['it']:['it','admin','it_manager','tech'];const it=users.filter(u=>allowed.includes(u.role)&&u.active);document.getElementById('asgn-sl').innerHTML=it.map(u=>`<option value="${esc(u.id)}">${esc(u.firstName)} ${esc(u.lastName)} — ${ROLE_L[u.role]}</option>`).join('');openM('ovAsgn');}
 async function subAsgn(){
   const aid=document.getElementById('asgn-sl').value;
   try{
