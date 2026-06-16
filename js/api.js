@@ -360,6 +360,27 @@ const API={
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تم الحذف'};
   },
+  'device.username.lookup':async(data)=>{
+    const q=(data.query||'').trim();
+    if(!q)return{success:false,message:'أدخل رقم الجهاز أو اسم الموظف'};
+    const{data:rows}=await sb.from('device_usernames').select('*').ilike('device_id',q);
+    if(!rows||!rows.length)return{success:false,message:'لا توجد نتيجة بهذا الاسم/الرقم'};
+    return{success:true,items:rows};
+  },
+  'admin.assign.internet':async(data)=>{
+    const empId=(data.empId||'').trim();
+    const devId=data.deviceUsernameId;
+    if(!empId||!devId)return{success:false,message:'بيانات ناقصة'};
+    const{data:u}=await sb.from('users').select('emp_id,name,dept').eq('emp_id',empId).maybeSingle();
+    if(!u)return{success:false,message:'الموظف غير موجود'};
+    const{data:dev}=await sb.from('device_usernames').select('*').eq('id',devId).maybeSingle();
+    if(!dev)return{success:false,message:'الجهاز غير موجود'};
+    const{data:already}=await sb.from('internet_users').select('id').eq('emp_id',empId).eq('username',dev.username).eq('network_label',dev.network_label).maybeSingle();
+    if(already)return{success:false,message:'هذا اليوزر مضاف مسبقاً لهذا الموظف'};
+    const{error}=await sb.from('internet_users').insert({emp_id:u.emp_id,name:u.name,dept:u.dept,network_label:dev.network_label,username:dev.username,password:dev.password,device_id:dev.device_id,notes:dev.notes,updated_at:new Date().toISOString()});
+    if(error)return{success:false,message:error.message};
+    return{success:true,message:'تم تعيين اليوزر للموظف: '+dev.username};
+  },
   'device.username.assign':async(data)=>{
     const{data:dev}=await sb.from('device_usernames').select('*').eq('id',data.deviceRowId).maybeSingle();
     if(!dev)return{success:false,message:'اليوزر غير موجود'};

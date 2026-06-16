@@ -1,6 +1,41 @@
 'use strict';
 /* ── INTERNET USERS ── */
 
+/* ── ADMIN: ADD INTERNET USERNAME TO EMPLOYEE ── */
+let _aaiSelected=null;
+function aaiClear(){_aaiSelected=null;const r=document.getElementById('aai-result');if(r)r.innerHTML='';}
+async function aaiLookup(){
+  const empId=(document.getElementById('aai-empid')||{}).value?.trim()||'';
+  const q=(document.getElementById('aai-query')||{}).value?.trim()||'';
+  const r=document.getElementById('aai-result');
+  if(!empId||!q){toast('يرجى إدخال رقم البصمة ورقم/اسم الجهاز',true);return;}
+  if(r)r.innerHTML='<span style="opacity:.5">جارٍ البحث...</span>';
+  const res=await api('device.username.lookup',{query:q});
+  if(!res||!res.success){if(r)r.innerHTML=`<div style="color:#b91c1c;padding:8px">${esc(res?res.message:'خطأ')}</div>`;return;}
+  const items=res.items||[];
+  if(r)r.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+items.map(it=>`
+    <div style="border:2px solid var(--gr);border-radius:10px;padding:10px 14px;cursor:pointer;background:var(--gr-l)" onclick="aaiSelect('${esc(it.id)}','${esc(it.network_label)}','${esc(it.username)}','${esc(it.password||'')}','${esc(it.device_id)}',this)">
+      <div style="font-weight:700;color:var(--gr-d)">${esc(it.device_id)}</div>
+      <div style="font-size:12px;margin-top:4px">الشبكة: <b>${esc(it.network_label)}</b> &nbsp;|&nbsp; اليوزر: <b style="font-family:monospace">${esc(it.username)}</b> &nbsp;|&nbsp; الرمز: <b style="font-family:monospace">${esc(it.password||'—')}</b></div>
+    </div>`).join('')+'</div>'+
+    `<button class="btn btn-g" style="margin-top:10px;width:100%" id="aai-save-btn" onclick="aaiSave('${esc(empId)}')" disabled><i class="fas fa-save"></i> حفظ اليوزر للموظف</button>`;
+}
+function aaiSelect(id,net,usr,pass,dev,el){
+  _aaiSelected=id;
+  document.querySelectorAll('#aai-result [onclick^="aaiSelect"]').forEach(e=>e.style.borderColor='var(--gr)');
+  if(el)el.style.borderColor='var(--in)';
+  const btn=document.getElementById('aai-save-btn');if(btn)btn.disabled=false;
+}
+async function aaiSave(empId){
+  if(!_aaiSelected){toast('اختر جهازاً أولاً',true);return;}
+  const r=await api('admin.assign.internet',{empId,deviceUsernameId:_aaiSelected});
+  if(r&&r.success){
+    toast('✅ '+r.message);
+    document.getElementById('aai-empid').value='';document.getElementById('aai-query').value='';
+    aaiClear();loadInternetUsers();
+  }else toast(r?r.message:'خطأ',true);
+}
+
 async function loadInternetUsers(){
   const el=document.getElementById('iuTbody');if(!el)return;
   el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px">'+skel(2)+'</td></tr>';

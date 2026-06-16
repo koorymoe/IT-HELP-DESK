@@ -293,6 +293,15 @@
 <div style="display:flex;gap:8px;align-items:flex-end"><div style="flex:1"><label>رقم البصمة</label><input id="iu-search-id" placeholder="EMP-001" autocapitalize="characters" onkeydown="if(event.key==='Enter')searchInternetUser()"/></div><button class="btn btn-p" onclick="searchInternetUser()" style="margin-bottom:2px"><i class="fas fa-search"></i>بحث</button></div>
 <div id="iu-search-result"></div>
 </div>
+<div class="card" style="border:2px solid var(--gr);margin-bottom:16px">
+<div class="card-h"><i class="fas fa-user-plus" style="color:var(--gr-d)"></i>إضافة يوزر لموظف</div>
+<div class="fg">
+  <div class="fg-r"><label>رقم البصمة *</label><input id="aai-empid" placeholder="مثال: 515" oninput="aaiClear()"/></div>
+  <div class="fg-r"><label>رقم الجهاز أو اسم الموظف *</label><input id="aai-query" placeholder="مثال: F09LP085 أو حسن علي حسين" dir="ltr" oninput="aaiClear()"/></div>
+</div>
+<div class="f-acts"><button class="btn btn-p" onclick="aaiLookup()"><i class="fas fa-search"></i> بحث عن الجهاز</button></div>
+<div id="aai-result" style="margin-top:10px"></div>
+</div>
 <div class="card" style="border:2px solid var(--cy);margin-bottom:16px">
 <div class="card-h"><i class="fas fa-edit" style="color:var(--cy)"></i>تعديل يوزر إنترنت يدوياً</div>
 <div class="fg"><div class="fg-r"><label>رقم البصمة *</label><input id="iu-eid" placeholder="EMP-001" autocapitalize="characters"/></div><div class="fg-r"><label>الشبكة</label><input id="iu-net" placeholder="HA-11" dir="ltr"/></div><div class="fg-r"><label>يوزر الإنترنت الصحيح *</label><input id="iu-user" placeholder="ali.ahmed" dir="ltr"/></div></div>
