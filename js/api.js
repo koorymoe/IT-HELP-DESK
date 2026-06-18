@@ -267,9 +267,19 @@ const API={
       dev=d1;
     }
     if(!dev){
-      // auto-match: try matching device_usernames.device_id against the employee's full name
-      const{data:d2}=await sb.from('device_usernames').select('*').eq('device_id',fullName.trim()).maybeSingle();
-      dev=d2;
+      const norm=s=>(s||'').replace(/\s+/g,' ').trim();
+      const fn=norm(fullName);
+      const{data:allDev}=await sb.from('device_usernames').select('*');
+      if(allDev)dev=allDev.find(r=>{
+        const did=norm(r.device_id);
+        if(!did||/^احتياطي/.test(did))return false;
+        if(did===fn)return true;
+        if(did.includes(fn)||fn.includes(did))return true;
+        const fParts=fn.split(' '),dParts=did.split(' ');
+        if(fParts.length>=2&&dParts.length>=2&&fParts[0]===dParts[0]&&fParts[1]===dParts[1])return true;
+        if(did.replace(/\s/g,'')===fn.replace(/\s/g,''))return true;
+        return false;
+      })||null;
     }
     if(dev){
       const{data:already}=await sb.from('internet_users').select('id').eq('username',dev.username).eq('network_label',dev.network_label).maybeSingle();
@@ -363,9 +373,25 @@ const API={
   'device.username.lookup':async(data)=>{
     const q=(data.query||'').trim();
     if(!q)return{success:false,message:'أدخل رقم الجهاز أو اسم الموظف'};
-    const{data:rows}=await sb.from('device_usernames').select('*').ilike('device_id',q);
-    if(!rows||!rows.length)return{success:false,message:'لا توجد نتيجة بهذا الاسم/الرقم'};
-    return{success:true,items:rows};
+    const norm=s=>(s||'').replace(/\s+/g,' ').trim();
+    const qn=norm(q);
+    const{data:rows}=await sb.from('device_usernames').select('*');
+    if(!rows||!rows.length)return{success:false,message:'لا توجد بيانات'};
+    const matches=rows.filter(r=>{
+      const did=norm(r.device_id);
+      if(!did)return false;
+      if(did===qn)return true;
+      if(did.includes(qn)||qn.includes(did))return true;
+      const qParts=qn.split(' ').filter(Boolean);
+      const dParts=did.split(' ').filter(Boolean);
+      if(qParts.length>=2&&dParts.length>=2&&qParts[0]===dParts[0]&&qParts[1]===dParts[1])return true;
+      const didNoSpace=did.replace(/\s/g,'');
+      const qNoSpace=qn.replace(/\s/g,'');
+      if(didNoSpace===qNoSpace||didNoSpace.includes(qNoSpace)||qNoSpace.includes(didNoSpace))return true;
+      return false;
+    });
+    if(!matches.length)return{success:false,message:'لا توجد نتيجة بهذا الاسم/الرقم'};
+    return{success:true,items:matches};
   },
   'admin.assign.internet':async(data)=>{
     const empId=(data.empId||'').trim();
