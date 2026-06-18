@@ -192,12 +192,13 @@ async function subInternetUser(){
   const empId=document.getElementById('iu-eid').value.trim();
   const username=document.getElementById('iu-user').value.trim();
   const networkLabel=(document.getElementById('iu-net')||{}).value?.trim()||'';
+  const password=(document.getElementById('iu-pass')||{}).value?.trim()||'';
   if(!empId||!username){toast('يرجى ملء جميع الحقول',true);return;}
   try{
     const{data:user}=await sb.from('users').select('*').eq('emp_id',empId).maybeSingle();
     if(!user){toast('الموظف غير موجود',true);return;}
-    const r=await api('internet.users.update',{empId,name:user.name,dept:user.dept,networkLabel,username});
-    if(r&&r.success){toast('✅ '+r.message);['iu-eid','iu-user','iu-net'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});loadInternetUsers();}
+    const r=await api('internet.users.update',{empId,name:user.name,dept:user.dept,networkLabel,username,password});
+    if(r&&r.success){toast('✅ '+r.message);['iu-eid','iu-user','iu-net','iu-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});loadInternetUsers();}
     else toast(r?r.message:'خطأ',true);
   }catch(e){toast('خطأ',true);}
 }
