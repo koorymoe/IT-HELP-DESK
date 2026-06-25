@@ -90,10 +90,13 @@ function nowHistoryEntry(action,by){
   return{action,by,time:new Date().toLocaleString('ar-EG')};
 }
 
+let _usersCache=null,_usersCacheT=0;
 async function getUsersById(){
+  if(_usersCache&&Date.now()-_usersCacheT<30000)return _usersCache;
   const{data}=await sb.from('users').select('id,name,emp_id,role,dept');
   const map={};
   (data||[]).forEach(u=>{const{firstName,lastName}=splitName(u.name);map[u.id]={firstName,lastName,empId:u.emp_id,role:u.role,dept:u.dept};});
+  _usersCache=map;_usersCacheT=Date.now();
   return map;
 }
 
@@ -107,7 +110,7 @@ const API={
   /* ---------- TICKETS ---------- */
   'tickets.list':async(data)=>{
     data=data||{};
-    let q=sb.from('tickets').select('*').order('created_at',{ascending:false});
+    let q=sb.from('tickets').select('*').order('created_at',{ascending:false}).limit(200);
     if(data.status&&data.status!=='all')q=q.eq('status',data.status);
     if(data.priority&&data.priority!=='all')q=q.eq('priority',data.priority);
     const{data:rows,error}=await q;
@@ -238,6 +241,7 @@ const API={
   },
 
   'tickets.delete':async(data)=>{
+    await sb.from('notifications').delete().eq('ticket_id',data.ticketId);
     const{error}=await sb.from('tickets').delete().eq('id',data.ticketId);
     if(error)return{success:false,message:error.message};
     return{success:true,message:'تم الحذف'};
