@@ -110,7 +110,7 @@ const API={
   /* ---------- TICKETS ---------- */
   'tickets.list':async(data)=>{
     data=data||{};
-    let q=sb.from('tickets').select('*').order('created_at',{ascending:false}).limit(200);
+    let q=sb.from('tickets').select('id,title,desc,problem_type,priority,status,requester_id,requester_name,requester_dept,assigned_id,assigned_name,notes,history,created_at,updated_at,solved_at,device_type').order('created_at',{ascending:false}).limit(200);
     if(data.status&&data.status!=='all')q=q.eq('status',data.status);
     if(data.priority&&data.priority!=='all')q=q.eq('priority',data.priority);
     const{data:rows,error}=await q;
@@ -127,7 +127,7 @@ const API={
 
   'tickets.myList':async()=>{
     if(!S.user)return{success:false,message:'غير مسجل دخول'};
-    const{data:rows,error}=await sb.from('tickets').select('*').eq('requester_id',S.user.id).order('created_at',{ascending:false});
+    const{data:rows,error}=await sb.from('tickets').select('id,title,desc,problem_type,priority,status,requester_id,requester_name,requester_dept,assigned_id,assigned_name,notes,history,created_at,updated_at,solved_at,device_type').eq('requester_id',S.user.id).order('created_at',{ascending:false});
     if(error)return{success:false,message:error.message};
     const usersById=await getUsersById();
     return{success:true,tickets:(rows||[]).map(t=>ticketRowToObj(t,usersById))};
@@ -724,7 +724,7 @@ const API={
 
   'stats.user':async()=>{
     if(!S.user)return{success:false};
-    const{data:rows,error}=await sb.from('tickets').select('*').eq('requester_id',S.user.id).order('created_at',{ascending:false});
+    const{data:rows,error}=await sb.from('tickets').select('id,title,desc,problem_type,priority,status,requester_id,requester_name,requester_dept,assigned_id,assigned_name,notes,history,created_at,updated_at,solved_at,device_type').eq('requester_id',S.user.id).order('created_at',{ascending:false});
     if(error)return{success:false,message:error.message};
     const tickets=rows||[];
     const stats={total:tickets.length,open:0,closed:0,inProgress:0};

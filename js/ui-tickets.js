@@ -223,7 +223,7 @@ async function deleteTicket(tid){
   if(!confirm('حذف هذا البلاغ نهائياً؟'))return;
   try{
     const r=await api('tickets.delete',{ticketId:tid});
-    if(r&&r.success){toast('✅ تم الحذف');closeM('ovTick');cc();loadTickets();}
+    if(r&&r.success){toast('✅ تم الحذف');closeM('ovTick');cc();S.tickets=(S.tickets||[]).filter(t=>t.id!==tid);renderTickets(S.tickets);}
     else toast(r?r.message:'خطأ',true);
   }catch(e){toast('خطأ',true);}
 }
