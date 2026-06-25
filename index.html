@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<title>IT Help Desk</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="css/styles.css"/>
+<link rel="manifest" href="./manifest.json"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="IT Help Desk"/>
+<meta name="theme-color" content="#0f172a"/>
+<link rel="apple-touch-icon" href="./icon-192.png"/>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="page active">
+<div class="lg-bg"><span class="lg-orb o1"></span><span class="lg-orb o2"></span><span class="lg-orb o3"></span></div>
+<div class="lg-dots"></div>
+<div class="lg-card">
+<div class="lg-brand"><div class="lg-ic"><i class="fas fa-laptop-code"></i></div><h1>IT Help Desk</h1><p>نظام الدعم التقني وطلبات الصيانة</p></div>
+<div class="lg-g"><label><i class="fas fa-id-badge" style="margin-left:4px"></i>رقم البصمة</label><input id="li-id" type="text" placeholder="مثال: EMP-001" autocomplete="off" autocapitalize="characters"/></div>
+<div class="lg-g"><label><i class="fas fa-lock" style="margin-left:4px"></i>الرمز السري</label><div class="pw-wrap"><input id="li-pw" type="password" placeholder="ادخل الرمز السري" autocomplete="current-password"/><button class="pw-btn" type="button" onclick="tpw('li-pw','li-ei')"><i class="fas fa-eye" id="li-ei"></i></button></div></div>
+<button class="lg-sub" id="lgBtn" onclick="doLogin()"><i class="fas fa-sign-in-alt" style="margin-left:6px"></i>تسجيل الدخول</button>
+<div class="err-box" id="lgErr"></div>
+</div>
+</div>
+
+<!-- APP PAGE -->
+<div id="appPage" class="page app">
+<aside class="sidebar">
+<div class="sb-logo"><div class="sb-logo-ic"><i class="fas fa-laptop-code"></i></div><div><div class="sb-logo-tx">IT Help Desk</div><div class="sb-logo-sb">v10 Pro</div></div></div>
+<div class="sb-user"><div class="sb-av" id="sb-av">?</div><div><div class="sb-un" id="sb-n">—</div><div class="sb-ur" id="sb-r">—</div></div></div>
+<nav class="sb-nav">
+<div class="sb-sec s-staff" style="display:none">الرئيسية</div>
+<button class="sb-i s-staff" data-t="dashboard" onclick="goTab('dashboard',this)" style="display:none"><span class="ic"><i class="fas fa-chart-line"></i></span>لوحة التحكم</button>
+<button class="sb-i s-staff" data-t="tickets" onclick="goTab('tickets',this)" style="display:none"><span class="ic"><i class="fas fa-clipboard-list"></i></span>البلاغات</button>
+<button class="sb-i s-staff" data-t="overdue" onclick="goTab('overdue',this)" style="display:none"><span class="ic"><i class="fas fa-clock"></i></span>المتأخرة<span class="nb" id="nb-ov" style="display:none">0</span></button>
+<button class="sb-i s-staff" data-t="reports" onclick="goTab('reports',this)" style="display:none"><span class="ic"><i class="fas fa-chart-pie"></i></span>التقارير</button>
+<div class="sb-sec s-it" style="display:none">العمليات</div>
+<button class="sb-i s-it" data-t="newTicket" onclick="goTab('newTicket',this)" style="display:none"><span class="ic"><i class="fas fa-plus-circle"></i></span>إرسال بلاغ</button>
+<button class="sb-i s-it" data-t="devices" onclick="goTab('devices',this)" style="display:none"><span class="ic"><i class="fas fa-laptop-medical"></i></span>إدارة الأجهزة</button>
+<button class="sb-i s-it" data-t="internet-users" onclick="goTab('internet-users',this)" style="display:none"><span class="ic"><i class="fas fa-wifi"></i></span>يوزرات الإنترنت</button>
+<div class="sb-sec s-tech" style="display:none">الصيانة</div>
+<button class="sb-i s-tech" data-t="devices" onclick="goTab('devices',this)" style="display:none"><span class="ic"><i class="fas fa-wrench"></i></span>أجهزتي للصيانة</button>
+<button class="sb-i s-tech" data-t="tech-stats" onclick="goTab('tech-stats',this)" style="display:none"><span class="ic"><i class="fas fa-chart-bar"></i></span>إنجازاتي</button>
+<button class="sb-i s-tech" data-t="tech-ticket" onclick="goTab('tech-ticket',this)" style="display:none"><span class="ic"><i class="fas fa-plus-circle"></i></span>إرسال بلاغ</button>
+<button class="sb-i s-admin" data-t="users" onclick="goTab('users',this)" style="display:none"><span class="ic"><i class="fas fa-users"></i></span>الموظفون</button>
+<button class="sb-i s-admin" data-t="newUser" onclick="goTab('newUser',this)" style="display:none"><span class="ic"><i class="fas fa-user-plus"></i></span>موظف جديد</button>
+<button class="sb-i s-admin" data-t="depts" onclick="goTab('depts',this)" style="display:none"><span class="ic"><i class="fas fa-building"></i></span>إدارة الأقسام</button>
+<div class="sb-sec s-mgr" style="display:none">المراقبة</div>
+<button class="sb-i s-mgr" data-t="newTicket" onclick="goTab('newTicket',this)" style="display:none"><span class="ic"><i class="fas fa-plus-circle"></i></span>إرسال بلاغ</button>
+<div class="sb-sec s-user-desk" style="display:none">بلاغاتي</div>
+<button class="sb-i s-user-desk" data-t="userHome" onclick="goTab('userHome',this)" style="display:none"><span class="ic"><i class="fas fa-home"></i></span>الرئيسية</button>
+<button class="sb-i s-user-desk" data-t="newTicketDesk" onclick="goTab('newTicketDesk',this)" style="display:none"><span class="ic"><i class="fas fa-plus-circle"></i></span>بلاغ جديد</button>
+<button class="sb-i s-user-desk" data-t="myTicketsDesk" onclick="goTab('myTicketsDesk',this)" style="display:none"><span class="ic"><i class="fas fa-clipboard-list"></i></span>بلاغاتي</button>
+<button class="sb-i s-user-desk" data-t="ai-desk" onclick="goTab('ai-desk',this)" style="display:none"><span class="ic"><i class="fas fa-robot"></i></span>المساعد الذكي</button>
+<div class="sb-sec s-staff" style="display:none">قاعدة المعرفة</div>
+<button class="sb-i s-staff" data-t="view-guidelines" onclick="goTab('view-guidelines',this)" style="display:none"><span class="ic"><i class="fas fa-shield-alt"></i></span>التوجيهات</button>
+<button class="sb-i s-staff" data-t="view-manual" onclick="goTab('view-manual',this)" style="display:none"><span class="ic"><i class="fas fa-book"></i></span>كتيب التعليمات</button>
+<button class="sb-i s-staff" data-t="ai-desk" onclick="goTab('ai-desk',this)" style="display:none"><span class="ic"><i class="fas fa-robot"></i></span>المساعد الذكي</button>
+</nav>
+<div class="sb-foot"><button class="sb-out" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i><span>تسجيل الخروج</span></button></div>
+</aside>
+
+<div class="main-area">
+<header class="topbar">
+<button class="tb-burger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div class="tb-ttl" id="pgTitle"><i class="fas fa-chart-line"></i>لوحة التحكم</div>
+<div class="tb-r">
+<div id="tb-iuser" style="display:none;align-items:center;gap:6px;background:var(--in-l);border:1px solid #c7d2fe;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--in-d)"><i class="fas fa-wifi"></i><span id="tb-iuser-val" class="user-internet-badge">—</span></div>
+<div class="tb-bell s-it" id="bellBtn" onclick="toggleNP()" style="display:none;position:relative">
+<i class="fas fa-bell"></i><div class="dot" id="nb2"></div>
+<div class="np" id="npanel">
+<div class="np-hdr"><h4><i class="fas fa-bell" style="color:var(--in);margin-left:5px"></i>إشعارات</h4><button class="btn btn-g btn-sm" onclick="event.stopPropagation();clearNP()">مسح الكل</button></div>
+<div id="npList"><div class="np-empty">لا توجد إشعارات</div></div>
+</div>
+</div>
+<div class="tb-av" id="tb-av">?</div>
+</div>
+</header>
+<main class="content">
+
+<div id="tab-dashboard" class="tab" style="display:none">
+<div class="sg" id="d-sg"><div class="skel skel-s"></div><div class="skel skel-s"></div><div class="skel skel-s"></div><div class="skel skel-s"></div></div>
+<div class="cr"><div class="card"><div class="card-h"><i class="fas fa-circle-half-stroke"></i>حسب الحالة</div><div class="cw"><canvas id="cSt"></canvas></div></div><div class="card"><div class="card-h"><i class="fas fa-signal"></i>حسب الأولوية</div><div class="cw"><canvas id="cPr"></canvas></div></div></div>
+<div class="card" id="d-perf" style="display:none"><div class="card-h"><i class="fas fa-trophy"></i>أداء فريق IT</div><div class="tw"><table id="perfTbl"><thead><tr><th>الاسم</th><th>الكل</th><th>محلول</th><th>مفتوح</th><th>معدل</th><th>متوسط الوقت</th></tr></thead><tbody></tbody></table></div></div>
+<div class="card" id="d-prob" style="display:none"><div class="card-h"><i class="fas fa-fire"></i>أكثر الأعطال تكراراً</div><div id="probList"></div></div>
+</div>
+
+<div id="tab-tickets" class="tab" style="display:none">
+<div class="card"><div class="card-h"><i class="fas fa-clipboard-list"></i>قائمة البلاغات</div>
+<div class="sr"><input id="f-q" placeholder="🔍 بحث..." oninput="debLoad()"/><select id="f-st" onchange="loadTickets()"><option value="all">كل الحالات</option><option value="جديدة">جديدة</option><option value="معينة">معينة</option><option value="قيد المعالجة">قيد المعالجة</option><option value="تم حل البلاغ">تم حل البلاغ</option></select><select id="f-pr" onchange="loadTickets()"><option value="all">كل الأولويات</option><option value="عاجلة">عاجلة</option><option value="عالية">عالية</option><option value="متوسطة">متوسطة</option><option value="منخفضة">منخفضة</option></select><button class="btn btn-g btn-sm" onclick="loadTickets()"><i class="fas fa-sync"></i></button></div>
+<div id="tList"></div></div>
+</div>
+
+<div id="tab-overdue" class="tab" style="display:none">
+<div style="background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fecaca;border-radius:var(--r);padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px"><div style="width:38px;height:38px;border-radius:9px;background:var(--re);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"><i class="fas fa-exclamation-triangle"></i></div><div><h3 style="font-size:13px;font-weight:800;color:#991b1b">البلاغات المتأخرة (أكثر من 48 ساعة)</h3><p id="ov-sub" style="font-size:11px;color:#b91c1c;margin-top:2px">جارٍ التحميل...</p></div></div>
+<div id="ovList"></div>
+</div>
+
+<div id="tab-reports" class="tab" style="display:none">
+<div id="resetStatsBtnWrap" style="display:none;margin-bottom:14px;text-align:left"><button class="btn btn-sm" style="background:var(--re);color:#fff;border:none" onclick="resetStats()"><i class="fas fa-trash-alt"></i> تصفير الإحصائيات</button></div>
+<div id="stat-periods" class="period-grid"></div>
+<div class="cr"><div class="card"><div class="card-h"><i class="fas fa-chart-doughnut"></i>توزيع الحالات</div><div class="cw"><canvas id="cSt2"></canvas></div></div><div class="card"><div class="card-h"><i class="fas fa-chart-pie"></i>توزيع الأولويات</div><div class="cw"><canvas id="cPr2"></canvas></div></div></div>
+<div class="cr"><div class="card"><div class="card-h"><i class="fas fa-chart-line"></i>البلاغات اليومية</div><div class="cw"><canvas id="cDy"></canvas></div></div><div class="card"><div class="card-h"><i class="fas fa-users"></i>أداء الفريق</div><div class="cw"><canvas id="cTm"></canvas></div></div></div>
+<div class="card"><div class="card-h"><i class="fas fa-file-alt"></i>ملخص تنفيذي</div><div id="r-sum" class="sg"></div></div>
+</div>
+
+<div id="tab-newTicket" class="tab" style="display:none">
+<div class="card"><div class="card-h"><i class="fas fa-plus-circle"></i>إنشاء بلاغ جديد</div>
+<div class="fg">
+<div class="fg-r"><label>نوع المشكلة *</label><select id="nt-p"><option value="">اختر...</option><option>عطل جهاز</option><option>مشكلة شبكة</option><option>مشكلة برنامج</option><option>طلب تثبيت</option><option>طلب تحديث</option><option>مشكلة طابعة</option><option>مشكلة إيميل</option><option>استرجاع بيانات</option><option>صلاحيات وصول</option><option>أخرى</option></select></div>
+<div class="fg-r"><label>الأولوية *</label><select id="nt-pri"><option value="منخفضة">منخفضة</option><option value="متوسطة" selected>متوسطة</option><option value="عالية">عالية</option><option value="عاجلة">عاجلة</option></select></div>
+<div class="fg-r"><label>نوع الجهاز</label><select id="nt-di"><option value="">اختر...</option><option value="laptop">💻 لابتوب</option><option value="desktop">🖥️ كمبيوتر</option><option value="printer">🖨️ طابعة</option><option value="phone">📱 هاتف</option><option value="network">🌐 شبكة</option><option value="server">🗄️ سيرفر</option><option value="other">🔧 أخرى</option></select></div>
+<div class="fg-r fg-f"><label>وصف المشكلة *</label><textarea id="nt-d" rows="4" placeholder="اشرح المشكلة بالتفصيل..."></textarea></div>
+</div>
+<div class="f-acts"><button class="btn btn-p" onclick="subITTicket()"><i class="fas fa-paper-plane"></i>إرسال البلاغ</button></div>
+</div>
+</div>
+
+<div id="tab-users" class="tab" style="display:none">
+<div class="card"><div class="card-h"><i class="fas fa-users"></i>إدارة الموظفين</div>
+<div class="sr"><input id="uQ" placeholder="🔍 بحث..." oninput="filterUsers()"/><button class="btn btn-g btn-sm" onclick="loadUsers()"><i class="fas fa-sync"></i></button></div>
+<div class="tw"><table><thead><tr><th>رقم البصمة</th><th>الاسم</th><th>القسم</th><th>الدور</th><th>الحالة</th><th>آخر دخول</th><th>إجراءات</th></tr></thead><tbody id="uTbody"></tbody></table></div>
+</div>
+</div>
+
+<div id="tab-newUser" class="tab" style="display:none">
+<div class="card"><div class="card-h"><i class="fas fa-user-plus"></i>إضافة موظف جديد</div>
+<div class="fg">
+<div class="fg-r"><label>الاسم الأول *</label><input id="nu-f" placeholder="علي"/></div>
+<div class="fg-r"><label>الاسم الأخير *</label><input id="nu-l" placeholder="أحمد"/></div>
+<div class="fg-r"><label>رقم البصمة *</label><input id="nu-id" placeholder="EMP-XXX"/></div>
+<div class="fg-r"><label>رقم الهاتف *</label><input id="nu-ph" placeholder="07XXXXXXXXX"/></div>
+<div class="fg-r"><label>القسم *</label><select id="nu-dp"><option value="">اختر القسم...</option></select></div>
+<div class="fg-r"><label>الدور *</label><select id="nu-ro" onchange="onRoleChange(this.value)">
+<option value="user">موظف عادي</option>
+<option value="tech" class="opt-admin" style="display:none">🔧 فني صيانة</option>
+<option value="it" class="opt-admin" style="display:none">💻 فريق IT</option>
+<option value="manager">👁️ مراقب / مدير</option>
+<option value="it_manager" class="opt-admin" style="display:none">⭐ مسؤول IT</option>
+<option value="admin" class="opt-admin" style="display:none">👑 أدمن</option>
+</select></div>
+<div class="fg-r fg-f" id="email-row" style="display:none"><label>إيميل الإشعارات</label><input id="nu-em" type="email" placeholder="name@company.com" dir="ltr"/></div>
+<div class="fg-r fg-f"><label>كلمة المرور *</label><div class="pw-wrap"><input id="nu-pw" type="password" placeholder="ادخل كلمة المرور" autocomplete="new-password"/><button class="pw-btn-d" type="button" onclick="tpw('nu-pw','nu-ei')"><i class="fas fa-eye" id="nu-ei"></i></button></div></div>
+<div class="fg-r fg-f"><label>رقم الجهاز/الحاسبة (اختياري — لربط يوزر إنترنت تلقائياً)</label><input id="nu-dev" placeholder="مثال: F09LP085" dir="ltr"/></div>
+</div>
+<div class="f-acts"><button class="btn btn-p" onclick="subUser()"><i class="fas fa-save"></i>إضافة الموظف</button></div>
+</div>
+</div>
+
+<div id="tab-depts" class="tab" style="display:none">
+<div class="card"><div class="card-h"><i class="fas fa-building"></i>إدارة الأقسام</div>
+<div style="display:flex;gap:8px;margin-bottom:16px"><input id="dept-new" placeholder="اسم القسم الجديد..."/><button class="btn btn-p" onclick="addDept()"><i class="fas fa-plus"></i>إضافة</button></div>
+<div id="deptList"></div>
+</div>
+</div>
+
+<div id="tab-view-guidelines" class="tab" style="display:none">
+<div class="card"><div class="card-h" style="justify-content:space-between"><span><i class="fas fa-shield-alt"></i>التوجيهات والأنظمة</span><button id="addGuideBtn" class="btn btn-p btn-sm" onclick="openGuideModal()" style="display:none"><i class="fas fa-plus"></i>إضافة</button></div><div id="guideList"><div class="skel skel-c"></div></div></div>
+</div>
+
+<div id="tab-view-manual" class="tab" style="display:none">
+<div class="card"><div class="card-h" style="justify-content:space-between"><span><i class="fas fa-book"></i>كتيب التعليمات</span><button id="addManualBtn" class="btn btn-p btn-sm" onclick="openManualModal()" style="display:none"><i class="fas fa-plus"></i>إضافة</button></div>
+<div class="dev-tabs" id="deskDevTabs"><button class="dev-tab-btn active" onclick="switchDeskDev(this,'')">🔍 الكل</button><button class="dev-tab-btn" onclick="switchDeskDev(this,'desktop')">🖥️ الحاسبة</button><button class="dev-tab-btn" onclick="switchDeskDev(this,'laptop')">💻 لابتوب</button><button class="dev-tab-btn" onclick="switchDeskDev(this,'printer')">🖨️ طابعة</button><button class="dev-tab-btn" onclick="switchDeskDev(this,'network')">🌐 شبكة</button><button class="dev-tab-btn" onclick="switchDeskDev(this,'phone')">📱 هاتف</button></div>
+<div id="manualList"><div class="skel skel-c"></div></div>
+</div>
+</div>
+
+<div id="tab-ai-desk" class="tab" style="display:none">
+<div class="ai-wrap">
+<div class="ai-hdr"><div class="ai-hdr-ic"><i class="fas fa-robot"></i></div><div class="ai-hdr-tx"><h3>المساعد الذكي المتطور</h3><p>يتعلم تلقائياً من حلول فريق IT — 7 رسائل كحد أقصى</p></div><button class="btn btn-g btn-sm" style="margin-right:auto" onclick="resetAI('desk')"><i class="fas fa-redo"></i>جديد</button></div>
+<div class="ai-dev-sel" id="deskAiDevSel"><button class="ai-dev-chip" onclick="pickAIDev(this,'desktop','desk')">🖥️ الحاسبة</button><button class="ai-dev-chip" onclick="pickAIDev(this,'laptop','desk')">💻 لابتوب</button><button class="ai-dev-chip" onclick="pickAIDev(this,'printer','desk')">🖨️ طابعة</button><button class="ai-dev-chip" onclick="pickAIDev(this,'network','desk')">🌐 شبكة</button><button class="ai-dev-chip" onclick="pickAIDev(this,'phone','desk')">📱 هاتف</button><button class="ai-dev-chip" onclick="pickAIDev(this,'other','desk')">🔧 أخرى</button></div>
+<div class="ai-limit-bar" id="deskAiLimitBar" style="display:none"><span>💬 الرسائل المتبقية:</span><div class="ai-limit-dots" id="deskAiDots"></div></div>
+<div class="ai-msgs" id="deskAiMsgs"><div class="ai-msg sys">👋 اختر نوع الجهاز أعلاه للبدء</div></div>
+<div class="ai-inp-row"><button class="ai-reset" onclick="resetAI('desk')"><i class="fas fa-trash"></i></button><input class="ai-inp" id="deskAiInp" placeholder="اكتب رسالتك..." disabled onkeydown="if(event.key==='Enter'){event.preventDefault();sendAIMsg('desk')}"/><button class="ai-send" id="deskAiSend" onclick="sendAIMsg('desk')" disabled><i class="fas fa-paper-plane"></i></button></div>
+</div>
+</div>
+
+<div id="tab-userHome" class="tab" style="display:none">
+<div style="background:linear-gradient(135deg,var(--in),var(--pu));border-radius:var(--r);padding:24px 28px;margin-bottom:20px;display:flex;align-items:center;gap:20px">
+<div style="width:60px;height:60px;border-radius:16px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;flex-shrink:0" id="desk-user-av">?</div>
+<div style="flex:1"><div style="font-size:20px;font-weight:900;color:#fff" id="desk-user-name">—</div><div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:3px" id="desk-user-dept">—</div></div>
+<div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:12px 18px;text-align:center"><div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;margin-bottom:4px">يوزر الإنترنت</div><div style="font-size:16px;font-weight:900;color:#fff;font-family:monospace" id="desk-user-iuser">—</div></div>
+</div>
+<div class="sg" id="desk-user-stats">
+<div class="sc" style="--sc:var(--in);--sc-bg:var(--in-l)"><div class="sc-ic"><i class="fas fa-clipboard-list"></i></div><div class="sc-n" id="du-total">—</div><div class="sc-l">إجمالي بلاغاتي</div></div>
+<div class="sc" style="--sc:var(--bl);--sc-bg:var(--bl-l)"><div class="sc-ic"><i class="fas fa-folder-open"></i></div><div class="sc-n" id="du-open">—</div><div class="sc-l">جديدة</div></div>
+<div class="sc" style="--sc:var(--cy);--sc-bg:var(--cy-l)"><div class="sc-ic"><i class="fas fa-spinner"></i></div><div class="sc-n" id="du-prog">—</div><div class="sc-l">قيد المعالجة</div></div>
+<div class="sc" style="--sc:var(--gr-d);--sc-bg:var(--gr-l)"><div class="sc-ic"><i class="fas fa-check-circle"></i></div><div class="sc-n" id="du-done">—</div><div class="sc-l">محلولة</div></div>
+</div>
+<div class="card"><div class="card-h"><i class="fas fa-history"></i>آخر بلاغاتي</div><div id="desk-user-tickets"></div><div style="margin-top:12px"><button class="btn btn-p" onclick="goTab('newTicketDesk',document.querySelector('[data-t=newTicketDesk]'))"><i class="fas fa-plus-circle"></i>إرسال بلاغ جديد</button></div></div>
+</div>
+
+<div id="tab-newTicketDesk" class="tab" style="display:none">
+<div class="card" style="max-width:680px;margin:0 auto">
+<div class="card-h"><i class="fas fa-plus-circle"></i>إرسال بلاغ جديد</div>
+<div class="fg">
+<div class="fg-r"><label>نوع المشكلة *</label><select id="utd-p"><option value="">اختر...</option><option>عطل جهاز</option><option>مشكلة شبكة</option><option>مشكلة برنامج</option><option>طلب تثبيت</option><option>مشكلة طابعة</option><option>مشكلة إيميل</option><option>استرجاع بيانات</option><option>أخرى</option></select></div>
+<div class="fg-r"><label>الأولوية *</label><select id="utd-pri"><option value="منخفضة">منخفضة</option><option value="متوسطة" selected>متوسطة</option><option value="عالية">عالية</option><option value="عاجلة">🚨 عاجلة</option></select></div>
+<div class="fg-r"><label>نوع الجهاز</label><select id="utd-di"><option value="">اختر...</option><option value="laptop">💻 لابتوب</option><option value="desktop">🖥️ كمبيوتر</option><option value="printer">🖨️ طابعة</option><option value="phone">📱 هاتف</option><option value="network">🌐 شبكة</option><option value="other">🔧 أخرى</option></select></div>
+<div class="fg-r fg-f"><label>وصف المشكلة *</label><textarea id="utd-d" rows="5" placeholder="اشرح المشكلة بالتفصيل..."></textarea></div>
+<div class="fg-r fg-f"><label>صورة المشكلة (اختياري)</label><div class="upload-zone" style="margin-top:5px"><input type="file" id="utd-img" accept="image/*" onchange="onDeskImgSelect(this)"/><div class="uz-ic">📎</div><div class="uz-tx">اضغط لاختيار صورة — JPG أو PNG (الحد 3MB)</div></div><div id="utd-img-preview" style="display:none;margin-top:8px"></div></div>
+</div>
+<div class="f-acts"><button class="btn btn-p" onclick="subDeskUserTicket()"><i class="fas fa-paper-plane"></i>إرسال البلاغ</button></div>
+</div>
+</div>
+
+<div id="tab-myTicketsDesk" class="tab" style="display:none">
+<div class="card"><div class="card-h"><i class="fas fa-clipboard-list"></i>بلاغاتي</div>
+<div class="sr"><select id="utd-st" onchange="loadDeskUserTickets()"><option value="all">كل الحالات</option><option value="جديدة">جديدة</option><option value="معينة">معينة</option><option value="قيد المعالجة">قيد المعالجة</option><option value="تم حل البلاغ">تم حل البلاغ</option></select><button class="btn btn-g btn-sm" onclick="loadDeskUserTickets()"><i class="fas fa-sync"></i></button></div>
+<div id="desk-user-tlist"></div>
+</div>
+</div>
+
+<div id="tab-tech-stats" class="tab" style="display:none">
+<div id="tech-iuser-card" style="display:none;background:linear-gradient(135deg,var(--in),var(--pu));border-radius:var(--r);padding:16px 20px;margin-bottom:16px;flex-direction:row;align-items:center;gap:14px">
+<div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex-shrink:0">🌐</div>
+<div><div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase">يوزر الإنترنت</div><div id="tech-iuser-val" style="font-size:18px;font-weight:900;color:#fff;font-family:monospace">—</div></div>
+</div>
+<div class="sg" id="tech-stats-grid">
+<div class="sc" style="--sc:var(--in);--sc-bg:var(--in-l)"><div class="sc-ic"><i class="fas fa-laptop-medical"></i></div><div class="sc-n" id="ts-total">—</div><div class="sc-l">إجمالي الأجهزة</div></div>
+<div class="sc" style="--sc:var(--gr-d);--sc-bg:var(--gr-l)"><div class="sc-ic"><i class="fas fa-check-circle"></i></div><div class="sc-n" id="ts-fixed">—</div><div class="sc-l">تم الإصلاح</div></div>
+<div class="sc" style="--sc:var(--am);--sc-bg:var(--am-l)"><div class="sc-ic"><i class="fas fa-tools"></i></div><div class="sc-n" id="ts-pending">—</div><div class="sc-l">قيد الصيانة</div></div>
+<div class="sc" style="--sc:var(--sl);--sc-bg:var(--bg2)"><div class="sc-ic"><i class="fas fa-handshake"></i></div><div class="sc-n" id="ts-delivered">—</div><div class="sc-l">مُسلَّم</div></div>
+</div>
+<div class="card"><div class="card-h"><i class="fas fa-history"></i>آخر أجهزة صيّنتها</div><div id="tech-recent-devices"></div></div>
+</div>
+
+<div id="tab-tech-ticket" class="tab" style="display:none">
+<div class="card" style="max-width:680px">
+<div class="card-h"><i class="fas fa-plus-circle"></i>إرسال بلاغ جديد</div>
+<div class="fg">
+<div class="fg-r"><label>نوع المشكلة *</label><select id="tt-p"><option value="">اختر...</option><option>عطل جهاز</option><option>مشكلة شبكة</option><option>مشكلة برنامج</option><option>طلب تثبيت</option><option>مشكلة طابعة</option><option>أخرى</option></select></div>
+<div class="fg-r"><label>الأولوية *</label><select id="tt-pri"><option value="منخفضة">منخفضة</option><option value="متوسطة" selected>متوسطة</option><option value="عالية">عالية</option><option value="عاجلة">🚨 عاجلة</option></select></div>
+<div class="fg-r"><label>نوع الجهاز</label><select id="tt-di"><option value="">اختر...</option><option value="laptop">💻 لابتوب</option><option value="desktop">🖥️ كمبيوتر</option><option value="printer">🖨️ طابعة</option><option value="phone">📱 هاتف</option><option value="other">🔧 أخرى</option></select></div>
+<div class="fg-r fg-f"><label>وصف المشكلة *</label><textarea id="tt-d" rows="4" placeholder="اشرح المشكلة..."></textarea></div>
+</div>
+<div class="f-acts"><button class="btn btn-p" onclick="subTechTicket()"><i class="fas fa-paper-plane"></i>إرسال البلاغ</button></div>
+</div>
+</div>
+
+<div id="tab-devices" class="tab" style="display:none">
+<div style="background:linear-gradient(135deg,#0f172a,#1e1b4b);border-radius:var(--r);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:0;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.6);font-size:11px;font-weight:700"><div style="width:28px;height:28px;border-radius:8px;background:rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;font-size:13px">📋</div>استلام من الموظف</div>
+<i class="fas fa-arrow-left" style="color:rgba(255,255,255,.2);margin:0 8px;font-size:10px"></i>
+<div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.6);font-size:11px;font-weight:700"><div style="width:28px;height:28px;border-radius:8px;background:rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;font-size:13px">🔧</div>تسليم للفني</div>
+<i class="fas fa-arrow-left" style="color:rgba(255,255,255,.2);margin:0 8px;font-size:10px"></i>
+<div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.6);font-size:11px;font-weight:700"><div style="width:28px;height:28px;border-radius:8px;background:rgba(6,182,212,.3);display:flex;align-items:center;justify-content:center;font-size:13px">⚙️</div>قيد الصيانة</div>
+<i class="fas fa-arrow-left" style="color:rgba(255,255,255,.2);margin:0 8px;font-size:10px"></i>
+<div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.6);font-size:11px;font-weight:700"><div style="width:28px;height:28px;border-radius:8px;background:rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-size:13px">📦</div>استلام من الفني</div>
+<i class="fas fa-arrow-left" style="color:rgba(255,255,255,.2);margin:0 8px;font-size:10px"></i>
+<div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.6);font-size:11px;font-weight:700"><div style="width:28px;height:28px;border-radius:8px;background:rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:13px">✅</div>تسليم للموظف</div>
+</div>
+<div class="card s-it" style="border:2px solid var(--in);margin-bottom:16px">
+<div class="card-h" style="margin-bottom:12px"><i class="fas fa-inbox" style="color:var(--in)"></i>استلام جهاز من الموظف <span style="font-size:10px;background:var(--in-l);color:var(--in-d);padding:2px 8px;border-radius:12px;margin-right:6px">IT فقط</span></div>
+<div class="fg">
+<div class="fg-r"><label>رقم البلاغ *</label><input id="ci-tid" placeholder="TKT-..."/></div>
+<div class="fg-r"><label>نوع الجهاز *</label><select id="ci-type"><option value="laptop">💻 لابتوب</option><option value="desktop">🖥️ حاسبة</option><option value="printer">🖨️ طابعة</option><option value="phone">📱 هاتف</option><option value="other">🔧 أخرى</option></select></div>
+<div class="fg-r"><label>وصف الجهاز / الرقم التسلسلي</label><input id="ci-desc" placeholder="Dell Latitude — SN12345"/></div>
+<div class="fg-r"><label>اسم صاحب الجهاز</label><input id="ci-owner" placeholder="اسم الموظف"/></div>
+<div class="fg-r"><label>القسم</label><input id="ci-dept" placeholder="قسم الموظف"/></div>
+<div class="fg-r fg-f"><label>حالة الجهاز عند الاستلام</label><textarea id="ci-notes" rows="2" placeholder="يعمل جزئياً / لا يعمل / شاشة مكسورة..."></textarea></div>
+</div>
+<div class="f-acts"><button class="btn btn-p" onclick="doCheckin()"><i class="fas fa-inbox"></i>تسجيل استلام الجهاز</button></div>
+</div>
+<div class="card s-tech" style="border:2px solid var(--am);margin-bottom:16px;display:none" id="techRepairSection">
+<div class="card-h" style="margin-bottom:12px"><i class="fas fa-wrench" style="color:var(--am)"></i>تسجيل نتيجة الصيانة <span style="font-size:10px;background:var(--am-l);color:#92400e;padding:2px 8px;border-radius:12px;margin-right:6px">فني الصيانة</span></div>
+<div class="fg">
+<div class="fg-r"><label>رقم الجهاز *</label><input id="tr-devid" placeholder="DEV-..."/></div>
+<div class="fg-r"><label>نتيجة الصيانة *</label><select id="tr-result"><option value="fixed">✅ تم الإصلاح بنجاح</option><option value="partial">⚠️ إصلاح جزئي</option><option value="failed">❌ تعذّر الإصلاح</option><option value="needs_parts">🔩 يحتاج قطع غيار</option></select></div>
+<div class="fg-r fg-f"><label>تفاصيل العمل المنجز *</label><textarea id="tr-work" rows="3" placeholder="ما الذي تم عمله بالتفصيل..."></textarea></div>
+<div class="fg-r fg-f"><label>سبب الفشل / الملاحظات</label><textarea id="tr-reason" rows="2" placeholder="إذا تعذّر الإصلاح، اذكر السبب..."></textarea></div>
+<div class="fg-r"><label>هل الجهاز جاهز للاستلام؟</label><select id="tr-ready"><option value="yes">نعم — جاهز للاستلام من IT</option><option value="no">لا — يحتاج مراجعة إضافية</option></select></div>
+</div>
+<div class="f-acts"><button class="btn btn-w" onclick="subTechRepair()"><i class="fas fa-save"></i>تسليم للـ IT + تسجيل النتيجة</button></div>
+</div>
+<div class="card">
+<div class="card-h" style="justify-content:space-between"><span><i class="fas fa-list"></i>سجل الأجهزة</span><button class="btn btn-g btn-sm" onclick="loadDevices()"><i class="fas fa-sync"></i>تحديث</button></div>
+<div class="sr"><select id="dev-filter" onchange="loadDevices()"><option value="all">كل الأجهزة</option><option value="عند IT">📥 عند IT</option><option value="عند الفني">🔧 عند الفني</option><option value="أُنجز — بانتظار IT">📦 أُنجز — بانتظار IT</option><option value="جاهز للتسليم">✅ جاهز للتسليم</option><option value="مُسلَّم">🏁 مُسلَّم</option></select></div>
+<div id="devList"></div>
+</div>
+</div>
+
+<div id="tab-internet-users" class="tab" style="display:none">
+<div class="card" style="border:2px solid var(--bl);margin-bottom:16px">
+<div class="card-h"><i class="fas fa-search" style="color:var(--bl)"></i>البحث عن يوزر موظف</div>
+<div style="display:flex;gap:8px;align-items:flex-end"><div style="flex:1"><label>رقم البصمة</label><input id="iu-search-id" placeholder="EMP-001" autocapitalize="characters" onkeydown="if(event.key==='Enter')searchInternetUser()"/></div><button class="btn btn-p" onclick="searchInternetUser()" style="margin-bottom:2px"><i class="fas fa-search"></i>بحث</button></div>
+<div id="iu-search-result"></div>
+</div>
+<div class="card" style="border:2px solid var(--gr);margin-bottom:16px">
+<div class="card-h"><i class="fas fa-user-plus" style="color:var(--gr-d)"></i>إضافة يوزر لموظف</div>
+<div class="fg">
+  <div class="fg-r"><label>رقم البصمة *</label><input id="aai-empid" placeholder="مثال: 515" oninput="aaiClear()"/></div>
+  <div class="fg-r"><label>رقم الجهاز أو اسم الموظف *</label><input id="aai-query" placeholder="مثال: F09LP085 أو حسن علي حسين" dir="ltr" oninput="aaiClear()"/></div>
+</div>
+<div class="f-acts"><button class="btn btn-p" onclick="aaiLookup()"><i class="fas fa-search"></i> بحث عن الجهاز</button></div>
+<div id="aai-result" style="margin-top:10px"></div>
+</div>
+<div class="card" style="border:2px solid var(--cy);margin-bottom:16px">
+<div class="card-h"><i class="fas fa-edit" style="color:var(--cy)"></i>تعديل يوزر إنترنت يدوياً</div>
+<div class="fg"><div class="fg-r"><label>رقم البصمة *</label><input id="iu-eid" placeholder="EMP-001" autocapitalize="characters"/></div><div class="fg-r"><label>الشبكة</label><input id="iu-net" placeholder="HA-11" dir="ltr"/></div><div class="fg-r"><label>يوزر الإنترنت *</label><input id="iu-user" placeholder="username" dir="ltr"/></div><div class="fg-r"><label>كلمة المرور</label><input id="iu-pass" placeholder="password" dir="ltr"/></div></div>
+<div class="f-acts"><button class="btn btn-w" onclick="subInternetUser()"><i class="fas fa-save"></i>تصحيح اليوزر</button></div>
+</div>
+<div class="card">
+<div class="card-h" style="justify-content:space-between"><span><i class="fas fa-users-cog"></i>قائمة يوزرات الإنترنت</span><div style="display:flex;gap:8px"><input id="iu-q" placeholder="🔍 بحث..." style="width:160px;padding:6px 10px;font-size:11px" oninput="filterIUsers()"/><button class="btn btn-g btn-sm" onclick="loadInternetUsers()"><i class="fas fa-sync"></i></button></div></div>
+<div class="tw"><table><thead><tr><th>رقم البصمة</th><th>الاسم</th><th>القسم</th><th>الشبكة</th><th>يوزر الإنترنت</th><th>آخر تحديث</th><th>إجراء</th></tr></thead><tbody id="iuTbody"></tbody></table></div>
+</div>
+<div class="card" id="devUserCard" style="display:none">
+<div class="card-h"><i class="fas fa-desktop"></i> ربط أرقام الأجهزة باليوزرات (للمطابقة التلقائية)</div>
+<div class="fg">
+<div class="fg-r"><label>رمز الشبكة</label><input id="du-net" placeholder="HA-12" dir="ltr"/></div>
+<div class="fg-r"><label>رقم الجهاز/الحاسبة</label><input id="du-dev" placeholder="HA-12-005" dir="ltr"/></div>
+<div class="fg-r"><label>اليوزر</label><input id="du-user" placeholder="username" dir="ltr"/></div>
+<div class="fg-r"><label>كلمة المرور</label><input id="du-pass" placeholder="password" dir="ltr"/></div>
+<div class="fg-r fg-f"><label>ملاحظات</label><input id="du-notes" placeholder="ملاحظات (اختياري)"/></div>
+</div>
+<div class="f-acts"><button class="btn btn-p" onclick="addDeviceUsername()"><i class="fas fa-plus"></i> إضافة</button></div>
+<div style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap">
+<select id="du-net-filter" style="width:110px;padding:10px 8px;font-size:13px" onchange="filterDeviceUsernames()"><option value="">كل الشبكات</option></select>
+<select id="du-status-filter" style="width:120px;padding:10px 8px;font-size:13px" onchange="filterDeviceUsernames()">
+  <option value="">الكل</option>
+  <option value="new">جديد (متاح)</option>
+  <option value="used">مستخدم</option>
+</select>
+<input id="du-q" placeholder="🔍 بحث باليوزر / رقم الجهاز / الموظف..." style="flex:1;min-width:200px;padding:10px 12px;font-size:13px" oninput="filterDeviceUsernames()"/>
+</div>
+<div class="tw"><table><thead><tr><th>الشبكة</th><th>رقم الجهاز</th><th>اليوزر</th><th>كلمة المرور</th><th>ملاحظات</th><th>الحالة</th><th></th></tr></thead><tbody id="duTbody"></tbody></table></div>
+</div>
+</div>
+
+</main>
+</div>
+
+<!-- MOBILE HEADER -->
+<header class="mob-hdr2"><div class="mh-logo"><div class="mh-ic"><i class="fas fa-laptop-code"></i></div><div class="mh-tx">IT Help Desk</div></div><div class="mh-av" id="mob-av">?</div></header>
+
+<!-- MOBILE BODY -->
+<div class="mob-body">
+<div id="mb-home" class="mb-tab">
+<div class="mob-hero">
+<div style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:4px">مرحباً بك</div>
+<div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:2px" id="mob-gr">—</div>
+<div style="font-size:11px;color:rgba(255,255,255,.4)" id="mob-dp">—</div>
+</div>
+<div class="mob-stats" id="mob-ms">
+<div class="mob-stat"><div class="msn" style="color:var(--in)">—</div><div class="msl">الكل</div></div>
+<div class="mob-stat"><div class="msn" style="color:var(--bl)">—</div><div class="msl">جديدة</div></div>
+<div class="mob-stat"><div class="msn" style="color:var(--gr-d)">—</div><div class="msl">محلولة</div></div>
+<div class="mob-stat"><div class="msn" style="color:#155e75">—</div><div class="msl">جارية</div></div>
+</div>
+<div class="mob-qa" onclick="mobTab('mb-new',1)"><div class="qa-ic"><i class="fas fa-plus"></i></div><div class="qa-tx"><h3>أرسل بلاغاً جديداً</h3><p>أبلغنا عن مشكلتك التقنية</p></div><i class="fas fa-chevron-left qa-arr"></i></div>
+<div class="mob-sec"><h3><i class="fas fa-history"></i>آخر بلاغاتك</h3></div>
+<div id="mob-rec"></div>
+</div>
+
+<div id="mb-new" class="mb-tab" style="display:none">
+<div class="mob-form">
+<div class="mob-form-hdr"><h2><i class="fas fa-plus-circle"></i>بلاغ جديد</h2><p>اختر نوع المشكلة واشرح ما يحدث</p></div>
+<div style="font-size:11px;font-weight:700;color:var(--sl);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">نوع المشكلة *</div>
+<div class="prob-grid">
+<div class="prob-btn" onclick="selProb(this,'عطل جهاز')"><span class="pb-ic">🖥️</span><span class="pb-tx">عطل جهاز</span></div>
+<div class="prob-btn" onclick="selProb(this,'مشكلة شبكة')"><span class="pb-ic">🌐</span><span class="pb-tx">مشكلة شبكة</span></div>
+<div class="prob-btn" onclick="selProb(this,'مشكلة برنامج')"><span class="pb-ic">💻</span><span class="pb-tx">مشكلة برنامج</span></div>
+<div class="prob-btn" onclick="selProb(this,'مشكلة طابعة')"><span class="pb-ic">🖨️</span><span class="pb-tx">مشكلة طابعة</span></div>
+<div class="prob-btn" onclick="selProb(this,'مشكلة إيميل')"><span class="pb-ic">📧</span><span class="pb-tx">مشكلة إيميل</span></div>
+<div class="prob-btn" onclick="selProb(this,'طلب تثبيت')"><span class="pb-ic">📦</span><span class="pb-tx">طلب تثبيت</span></div>
+<div class="prob-btn" onclick="selProb(this,'استرجاع بيانات')"><span class="pb-ic">💾</span><span class="pb-tx">استرجاع بيانات</span></div>
+<div class="prob-btn" onclick="selProb(this,'أخرى')"><span class="pb-ic">🔧</span><span class="pb-tx">أخرى</span></div>
+</div>
+<input type="hidden" id="mn-p" value=""/>
+<div style="font-size:11px;font-weight:700;color:var(--sl);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">الأولوية *</div>
+<div class="pri-row"><div class="pri-btn" onclick="selPri(this,'منخفضة')">منخفضة</div><div class="pri-btn sel-متوسطة" onclick="selPri(this,'متوسطة')">متوسطة</div><div class="pri-btn" onclick="selPri(this,'عالية')">عالية</div><div class="pri-btn" onclick="selPri(this,'عاجلة')">🚨 عاجلة</div></div>
+<input type="hidden" id="mn-pri" value="متوسطة"/>
+<div style="font-size:11px;font-weight:700;color:var(--sl);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">نوع الجهاز</div>
+<div class="dev-row"><div class="dev-chip selected" onclick="selDev(this,'')">الكل</div><div class="dev-chip" onclick="selDev(this,'laptop')">💻 لابتوب</div><div class="dev-chip" onclick="selDev(this,'desktop')">🖥️ كمبيوتر</div><div class="dev-chip" onclick="selDev(this,'printer')">🖨️ طابعة</div><div class="dev-chip" onclick="selDev(this,'phone')">📱 هاتف</div><div class="dev-chip" onclick="selDev(this,'network')">🌐 شبكة</div><div class="dev-chip" onclick="selDev(this,'other')">🔧 أخرى</div></div>
+<input type="hidden" id="mn-di" value=""/>
+<div style="font-size:11px;font-weight:700;color:var(--sl);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">وصف المشكلة *</div>
+<textarea id="mn-d" class="mob-desc" placeholder="اشرح المشكلة بالتفصيل..."></textarea>
+<div style="margin-bottom:20px">
+<div style="font-size:11px;font-weight:700;color:var(--sl);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">صورة المشكلة (اختياري)</div>
+<label for="mn-img" style="display:flex;align-items:center;gap:10px;background:var(--bg2);border:2px dashed var(--border2);border-radius:14px;padding:14px 16px;cursor:pointer;transition:.15s" id="mn-img-label">
+<div style="width:40px;height:40px;border-radius:10px;background:var(--in-l);display:flex;align-items:center;justify-content:center;color:var(--in);font-size:18px;flex-shrink:0"><i class="fas fa-camera"></i></div>
+<div><div style="font-size:13px;font-weight:700;color:#374151">ارفق صورة للمشكلة</div><div style="font-size:10px;color:var(--sl);margin-top:2px">JPG أو PNG — الحد 3MB</div></div>
+<i class="fas fa-chevron-left" style="margin-right:auto;color:var(--sl);font-size:12px"></i>
+</label>
+<input type="file" id="mn-img" accept="image/*" style="display:none" onchange="onMobImgSelect(this)"/>
+<div id="mn-img-preview" style="margin-top:8px;display:none">
+<div style="display:flex;align-items:center;gap:8px;background:var(--gr-l);border:1px solid #a7f3d0;border-radius:10px;padding:8px 12px">
+<img id="mn-img-thumb" style="width:40px;height:40px;border-radius:6px;object-fit:cover"/>
+<div style="flex:1;min-width:0"><div id="mn-img-name" style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><div style="font-size:10px;color:var(--sl)">✅ جاهزة للإرسال</div></div>
+<button onclick="removeMobImg()" style="background:var(--re-l);border:1px solid #fecaca;color:var(--re);border-radius:6px;padding:4px 8px;font-size:10px"><i class="fas fa-times"></i></button>
+</div>
+</div>
+</div>
+<button class="mob-submit" id="mobSubBtn" onclick="subMob()"><i class="fas fa-paper-plane"></i>إرسال البلاغ</button>
+</div>
+</div>
+
+<div id="mb-support" class="mb-tab" style="display:none">
+<div style="background:linear-gradient(145deg,#0f172a,#1e1b4b);padding:24px 18px 28px"><div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:4px">الدعم التقني</div><div style="font-size:12px;color:rgba(255,255,255,.45)">التوجيهات · كتيب التعليمات · المساعد الذكي</div></div>
+<div style="padding:12px 16px 4px"><div style="font-size:11px;font-weight:700;color:var(--sl);margin-bottom:8px">🤖 المساعد الذكي</div></div>
+<div class="mob-support-card" onclick="openMobAI()"><div class="msc-ic" style="background:linear-gradient(135deg,var(--in),var(--pu))"><i class="fas fa-robot" style="color:#fff"></i></div><div class="msc-tx"><h3>تشخيص ذكي للمشاكل</h3><p>يتعلم من حلول IT — 7 رسائل حد أقصى</p></div><i class="fas fa-chevron-left" style="color:var(--sl);font-size:12px"></i></div>
+<div style="padding:4px 16px 4px"><div style="font-size:11px;font-weight:700;color:var(--sl);margin-bottom:8px">📚 قاعدة المعرفة</div></div>
+<div class="mob-support-card" onclick="openMobManual()"><div class="msc-ic" style="background:linear-gradient(135deg,var(--bl),#2563eb)"><i class="fas fa-book" style="color:#fff"></i></div><div class="msc-tx"><h3>كتيب التعليمات</h3><p>حلول جاهزة لأشهر مشاكل الأجهزة</p></div><i class="fas fa-chevron-left" style="color:var(--sl);font-size:12px"></i></div>
+<div class="mob-support-card" onclick="openMobGuidelines()"><div class="msc-ic" style="background:linear-gradient(135deg,var(--am),#d97706)"><i class="fas fa-shield-alt" style="color:#fff"></i></div><div class="msc-tx"><h3>التوجيهات والأنظمة</h3><p>قواعد وإجراءات احترازية مهمة</p></div><i class="fas fa-chevron-left" style="color:var(--sl);font-size:12px"></i></div>
+</div>
+
+<div id="mb-guidelines" class="mb-tab" style="display:none">
+<div style="padding:16px 16px 8px;display:flex;align-items:center;gap:8px"><button onclick="mobTab('mb-support',1)" style="background:none;color:var(--sl);font-size:14px;padding:4px"><i class="fas fa-arrow-right"></i></button><div style="font-size:17px;font-weight:900">التوجيهات والأنظمة</div></div>
+<div id="mobGuideList" style="padding:0 16px"><div class="skel skel-c"></div></div>
+</div>
+
+<div id="mb-manual" class="mb-tab" style="display:none">
+<div style="padding:16px 16px 8px;display:flex;align-items:center;gap:8px"><button onclick="mobTab('mb-support',1)" style="background:none;color:var(--sl);font-size:14px;padding:4px"><i class="fas fa-arrow-right"></i></button><div style="font-size:17px;font-weight:900">كتيب التعليمات</div></div>
+<div style="padding:0 16px 8px;overflow-x:auto"><div class="dev-row" id="mobManualDevRow"><div class="dev-chip selected" onclick="switchMobDev(this,'')">الكل</div><div class="dev-chip" onclick="switchMobDev(this,'desktop')">🖥️</div><div class="dev-chip" onclick="switchMobDev(this,'laptop')">💻</div><div class="dev-chip" onclick="switchMobDev(this,'printer')">🖨️</div><div class="dev-chip" onclick="switchMobDev(this,'network')">🌐</div><div class="dev-chip" onclick="switchMobDev(this,'phone')">📱</div></div></div>
+<div id="mobManualList" style="padding:0 16px"><div class="skel skel-c"></div></div>
+</div>
+
+<div id="mb-ai" class="mb-tab" style="display:none">
+<div class="mob-ai-wrap">
+<div style="background:linear-gradient(135deg,#0f172a,#1e1b4b);padding:12px 16px;display:flex;align-items:center;gap:10px">
+<button onclick="mobTab('mb-support',1)" style="background:none;color:rgba(255,255,255,.5);font-size:16px;padding:4px"><i class="fas fa-arrow-right"></i></button>
+<div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--in),var(--pu));display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff"><i class="fas fa-robot"></i></div>
+<div><div style="font-size:13px;font-weight:900;color:#fff">المساعد الذكي</div><div style="font-size:10px;color:rgba(255,255,255,.4)" id="mobAiStatus">اختر نوع الجهاز</div></div>
+<button onclick="resetAI('mob')" style="margin-right:auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:700"><i class="fas fa-redo"></i> جديد</button>
+</div>
+<div id="mobAiDevSel" style="padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;gap:6px;overflow-x:auto;scrollbar-width:none">
+<button class="ai-dev-chip" onclick="pickAIDev(this,'desktop','mob')">🖥️</button>
+<button class="ai-dev-chip" onclick="pickAIDev(this,'laptop','mob')">💻</button>
+<button class="ai-dev-chip" onclick="pickAIDev(this,'printer','mob')">🖨️</button>
+<button class="ai-dev-chip" onclick="pickAIDev(this,'network','mob')">🌐</button>
+<button class="ai-dev-chip" onclick="pickAIDev(this,'phone','mob')">📱</button>
+<button class="ai-dev-chip" onclick="pickAIDev(this,'other','mob')">🔧</button>
+</div>
+<div id="mobAiLimitBar" style="padding:6px 14px;background:#fefce8;border-bottom:1px solid #fde68a;display:none;align-items:center;gap:8px;font-size:10px;color:#92400e"><span>💬 متبقية:</span><div class="ai-limit-dots" id="mobAiDots" style="display:flex;gap:3px;margin-right:auto"></div></div>
+<div class="mob-ai-msgs" id="mobAiMsgs"><div class="ai-msg sys">👋 اختر نوع الجهاز واشرح مشكلتك</div></div>
+<div class="mob-ai-inp-row">
+<textarea class="mob-ai-inp" id="mobAiInp" placeholder="اكتب مشكلتك..." rows="1" disabled style="resize:none;overflow:hidden;line-height:1.4" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+<button class="mob-ai-send" id="mobAiSend" onclick="sendAIMsg('mob')" disabled><i class="fas fa-paper-plane"></i></button>
+</div>
+</div>
+</div>
+
+<div id="mb-ticks" class="mb-tab" style="display:none">
+<div style="padding:16px 16px 8px"><div style="font-size:17px;font-weight:900;margin-bottom:12px">بلاغاتي</div>
+<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none">
+<button class="dev-chip selected" data-val="all" onclick="filterMobTick(this,'all')">الكل</button>
+<button class="dev-chip" data-val="جديدة" onclick="filterMobTick(this,'جديدة')">🔵 جديدة</button>
+<button class="dev-chip" data-val="قيد المعالجة" onclick="filterMobTick(this,'قيد المعالجة')">🔄 جارية</button>
+<button class="dev-chip" data-val="تم حل البلاغ" onclick="filterMobTick(this,'تم حل البلاغ')">✅ محلولة</button>
+</div>
+</div>
+<div id="mob-tl" style="padding:0 16px"></div>
+</div>
+
+<div id="mb-info" class="mb-tab" style="display:none">
+<div style="background:linear-gradient(145deg,#0f172a,#1e1b4b);padding:28px 20px;text-align:center">
+<div id="inf-av" style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--in),var(--pu));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;margin:0 auto 12px;border:3px solid rgba(255,255,255,.2)">?</div>
+<div id="inf-name" style="font-size:19px;font-weight:900;color:#fff">—</div>
+<div id="inf-role" style="font-size:11px;color:rgba(255,255,255,.5);margin-top:4px">—</div>
+<span id="inf-offline-badge" class="badge b-as" style="display:none;margin-top:8px">⚠️ بيانات محفوظة محلياً (قد تكون قديمة) - غير متصل بالإنترنت</span>
+</div>
+<div style="margin:16px 16px 0">
+<div style="background:linear-gradient(135deg,var(--in),var(--pu));border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 20px rgba(99,102,241,.35)">
+<div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;flex-shrink:0">🌐</div>
+<div style="flex:1"><div style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;text-transform:uppercase;letter-spacing:.5px">بيانات الإنترنت</div><div id="inf-internet" style="margin-top:3px">—</div></div>
+<i class="fas fa-wifi" style="color:rgba(255,255,255,.5);font-size:18px"></i>
+</div>
+</div>
+<div class="info-card" style="margin-top:12px">
+<div class="info-row"><div class="info-ic" style="background:var(--in-l);color:var(--in)"><i class="fas fa-id-badge"></i></div><div><div class="info-label">رقم البصمة</div><div class="info-val" id="inf-id" style="font-family:monospace">—</div></div></div>
+<div class="info-row"><div class="info-ic" style="background:var(--pu-l);color:var(--pu)"><i class="fas fa-building"></i></div><div><div class="info-label">القسم</div><div class="info-val" id="inf-dept">—</div></div></div>
+<div class="info-row"><div class="info-ic" style="background:var(--am-l);color:var(--am)"><i class="fas fa-phone"></i></div><div><div class="info-label">رقم الهاتف</div><div class="info-val" id="inf-phone">—</div></div></div>
+<div class="info-row"><div class="info-ic" style="background:var(--gr-l);color:var(--gr-d)"><i class="fas fa-clipboard-list"></i></div><div><div class="info-label">عدد البلاغات</div><div class="info-val" id="inf-tickets">—</div></div></div>
+</div>
+<div style="margin:0 16px 16px"><button onclick="doLogout()" style="width:100%;padding:14px;border-radius:13px;background:var(--re-l);border:2px solid #fecaca;color:#b91c1c;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fas fa-sign-out-alt"></i>تسجيل الخروج</button></div>
+</div>
+
+</div>
+
+<button class="mob-fab" onclick="mobTab('mb-new',1)" title="بلاغ جديد"><i class="fas fa-plus"></i></button>
+<nav class="mob-bnav">
+<button class="mob-bni active" onclick="mobTab('mb-home',0)"><span class="bni-ic"><i class="fas fa-home"></i></span>الرئيسية</button>
+<button class="mob-bni" onclick="mobTab('mb-support',1)"><span class="bni-ic"><i class="fas fa-life-ring"></i></span>الدعم</button>
+<button class="mob-bni" onclick="mobTab('mb-ticks',2);loadMobTicks()"><span class="bni-ic"><i class="fas fa-clipboard-list"></i></span>بلاغاتي</button>
+<button class="mob-bni" onclick="mobTab('mb-info',3);loadMyInfo()"><span class="bni-ic"><i class="fas fa-user-circle"></i></span>معلوماتي</button>
+<button class="mob-bni" onclick="doLogout()"><span class="bni-ic"><i class="fas fa-sign-out-alt"></i></span>خروج</button>
+</nav>
+<div class="mob-success" id="mobSuccess">
+<div class="success-ic">✅</div>
+<div style="font-size:22px;font-weight:900;margin-bottom:8px">تم إرسال البلاغ!</div>
+<div style="font-size:13px;color:var(--sl);margin-bottom:8px" id="successTid">—</div>
+<div style="font-size:12px;color:var(--sl);margin-bottom:28px">سيتواصل معك فريق IT قريباً</div>
+<button onclick="closeMobSuccess()" style="background:linear-gradient(135deg,var(--in),var(--pu));color:#fff;padding:14px 32px;border-radius:12px;font-size:14px;font-weight:700">حسناً 👍</button>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="ov" id="ovTick"><div class="modal"><div class="modal-h"><h3><i class="fas fa-clipboard-check"></i>تفاصيل البلاغ</h3><button class="modal-x" onclick="closeM('ovTick')"><i class="fas fa-times"></i></button></div><div id="mTBody"></div></div></div>
+<div class="ov" id="ovAR"><div class="modal" style="max-width:420px"><div class="modal-h"><h3 id="ar-title"><i class="fas fa-info-circle"></i></h3><button class="modal-x" onclick="closeM('ovAR')"><i class="fas fa-times"></i></button></div>
+<div style="padding:6px 0 4px;text-align:center">
+  <div id="ar-icon" style="font-size:40px;margin-bottom:10px"></div>
+  <div id="ar-msg" style="font-size:14px;line-height:1.9;color:var(--tx);margin-bottom:14px"></div>
+  <div id="ar-links" style="display:flex;flex-direction:column;gap:8px"></div>
+</div>
+</div></div>
+<div class="ov" id="ovAddInet"><div class="modal" style="max-width:380px"><div class="modal-h"><h3><i class="fas fa-wifi"></i> إضافة يوزر إنترنت</h3><button class="modal-x" onclick="closeM('ovAddInet')"><i class="fas fa-times"></i></button></div>
+<div id="ai-step1">
+  <p style="margin-bottom:12px;font-size:13px;color:var(--tx)">هل هذا اليوزر لموبايلك الشخصي أم لجهاز/حاسبة العمل؟</p>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-g" style="flex:1" onclick="aiChoose('personal')"><i class="fas fa-mobile-alt"></i> شخصي</button>
+    <button class="btn btn-p" style="flex:1" onclick="aiChoose('device')"><i class="fas fa-desktop"></i> جهاز/حاسبة</button>
+  </div>
+</div>
+<div id="ai-step2" style="display:none">
+  <div id="ai-personal" style="display:none"><div class="fg-r"><label>أدخل يوزر الإنترنت</label><input id="ai-username" dir="ltr" placeholder="username"/></div></div>
+  <div id="ai-device" style="display:none"><div class="fg-r"><label>أدخل رقم الجهاز/الحاسبة</label><input id="ai-deviceid" dir="ltr" placeholder="مثال: HA-12-005"/></div></div>
+  <div class="f-acts" style="margin-top:12px"><button class="btn btn-p" onclick="aiSubmit()"><i class="fas fa-check"></i> حفظ</button></div>
+</div>
+</div></div>
+<div class="ov" id="ovUpd"><div class="modal" style="max-width:460px"><div class="modal-h"><h3><i class="fas fa-edit"></i>تحديث البلاغ</h3><button class="modal-x" onclick="closeM('ovUpd')"><i class="fas fa-times"></i></button></div>
+<div class="fg-r" style="margin-bottom:12px"><label>هل تم حل البلاغ؟</label>
+<input type="hidden" id="upd-st" value="">
+<div style="display:flex;gap:10px">
+<button type="button" id="upd-btn-yes" class="upd-choice" onclick="pickUpdSt('تم حل البلاغ')"><i class="fas fa-check-circle"></i> تم الحل</button>
+<button type="button" id="upd-btn-no" class="upd-choice" onclick="pickUpdSt('قيد المعالجة')"><i class="fas fa-redo"></i> لم يتم الحل</button>
+</div></div>
+<div class="fg-r"><label>ملاحظات (اختياري)</label><textarea id="upd-not" rows="3" placeholder="اكتب أي ملاحظات إن وجدت..."></textarea></div>
+<input type="hidden" id="upd-sol" value="">
+<div class="f-acts"><button class="btn btn-g" onclick="closeM('ovUpd')">إلغاء</button><button class="btn btn-p" onclick="subUpd()"><i class="fas fa-save"></i>حفظ</button></div>
+</div></div>
+<div class="ov" id="ovAsgn"><div class="modal" style="max-width:400px"><div class="modal-h"><h3><i class="fas fa-user-check"></i>تعيين المعالج</h3><button class="modal-x" onclick="closeM('ovAsgn')"><i class="fas fa-times"></i></button></div>
+<div class="fg-r"><label>اختر المعالج</label><select id="asgn-sl"></select></div>
+<div class="f-acts"><button class="btn btn-g" onclick="closeM('ovAsgn')">إلغاء</button><button class="btn btn-p" onclick="subAsgn()"><i class="fas fa-check"></i>تعيين</button></div>
+</div></div>
+<div class="ov" id="ovHelp"><div class="modal" style="max-width:400px"><div class="modal-h"><h3><i class="fas fa-hands-helping"></i>طلب مساعدة</h3><button class="modal-x" onclick="closeM('ovHelp')"><i class="fas fa-times"></i></button></div>
+<div class="fg-r" style="margin-bottom:12px"><label>اختر المساعد</label><select id="hlp-sl"></select></div>
+<div class="fg-r"><label>سبب طلب المساعدة</label><textarea id="hlp-not" rows="3" placeholder="اشرح الصعوبة..."></textarea></div>
+<div class="f-acts"><button class="btn btn-g" onclick="closeM('ovHelp')">إلغاء</button><button class="btn btn-s" onclick="subHelp()"><i class="fas fa-paper-plane"></i>إرسال</button></div>
+</div></div>
+<div class="pw-modal-overlay" id="pwModal">
+<div class="pw-modal">
+<div class="modal-h"><h3><i class="fas fa-key"></i>تغيير الرمز السري</h3><button class="modal-x" onclick="closePwModal()"><i class="fas fa-times"></i></button></div>
+<div style="font-size:13px;color:var(--sl);margin-bottom:16px" id="pwModalName">—</div>
+<div class="fg-r" style="margin-bottom:16px"><label>الرمز السري الجديد *</label><div class="pw-wrap"><input id="pw-new" type="password" placeholder="ادخل الرمز الجديد" autocomplete="new-password"/><button class="pw-btn-d" type="button" onclick="tpw('pw-new','pw-ei')"><i class="fas fa-eye" id="pw-ei"></i></button></div></div>
+<div class="f-acts"><button class="btn btn-g" onclick="closePwModal()">إلغاء</button><button class="btn btn-w" onclick="submitPwReset()"><i class="fas fa-save"></i>حفظ</button></div>
+</div>
+</div>
+<div class="ov" id="ovAddGuide"><div class="modal" style="max-width:480px"><div class="modal-h"><h3><i class="fas fa-shield-alt"></i><span id="guideModalTitle">إضافة توجيه</span></h3><button class="modal-x" onclick="closeM('ovAddGuide')"><i class="fas fa-times"></i></button></div>
+<input type="hidden" id="gm-id"/>
+<div class="fg"><div class="fg-r fg-f"><label>العنوان *</label><input id="gm-title" placeholder="مثال: ممنوع نقل الكيبلات"/></div><div class="fg-r fg-f"><label>المحتوى *</label><textarea id="gm-content" rows="4" placeholder="اشرح التوجيه..."></textarea></div>
+<div class="fg-r"><label>الأيقونة</label><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><button class="dev-chip selected" onclick="pickGuideIcon(this,'⚠️')">⚠️</button><button class="dev-chip" onclick="pickGuideIcon(this,'🚫')">🚫</button><button class="dev-chip" onclick="pickGuideIcon(this,'🔒')">🔒</button><button class="dev-chip" onclick="pickGuideIcon(this,'💾')">💾</button><button class="dev-chip" onclick="pickGuideIcon(this,'🖥️')">🖥️</button><button class="dev-chip" onclick="pickGuideIcon(this,'🔌')">🔌</button><button class="dev-chip" onclick="pickGuideIcon(this,'📋')">📋</button></div><input type="hidden" id="gm-icon" value="⚠️"/></div>
+<div class="fg-r"><label>الأهمية *</label><select id="gm-priority"><option value="تحذير">🔴 تحذير</option><option value="مهم" selected>🟡 مهم</option><option value="معلومة">🔵 معلومة</option></select></div>
+</div><div class="f-acts"><button class="btn btn-g" onclick="closeM('ovAddGuide')">إلغاء</button><button class="btn btn-p" onclick="subGuide()"><i class="fas fa-save"></i>حفظ</button></div>
+</div></div>
+<div class="ov" id="ovAddManual"><div class="modal" style="max-width:560px"><div class="modal-h"><h3><i class="fas fa-book"></i><span id="manualModalTitle">إضافة دليل</span></h3><button class="modal-x" onclick="closeM('ovAddManual')"><i class="fas fa-times"></i></button></div>
+<input type="hidden" id="mm-id"/>
+<div class="fg">
+<div class="fg-r"><label>نوع الجهاز *</label><select id="mm-device"><option value="desktop">🖥️ الحاسبة</option><option value="laptop">💻 لابتوب</option><option value="printer">🖨️ طابعة</option><option value="network">🌐 شبكة</option><option value="phone">📱 هاتف</option><option value="other">🔧 أخرى</option></select></div>
+<div class="fg-r"><label>نوع المشكلة</label><select id="mm-prob"><option value="">اختر...</option><option>عطل جهاز</option><option>مشكلة شبكة</option><option>مشكلة برنامج</option><option>مشكلة طابعة</option><option>صلاحيات وصول</option><option>أخرى</option></select></div>
+<div class="fg-r fg-f"><label>عنوان الدليل *</label><input id="mm-title" placeholder="مثال: الطابعة لا تطبع"/></div>
+<div class="fg-r fg-f"><label>وصف مختصر</label><input id="mm-desc" placeholder="جملة تلخص الدليل"/></div>
+<div class="fg-r"><label>الأيقونة</label><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"><button class="dev-chip" onclick="pickManualIcon(this,'🖥️')">🖥️</button><button class="dev-chip selected" onclick="pickManualIcon(this,'💻')">💻</button><button class="dev-chip" onclick="pickManualIcon(this,'🖨️')">🖨️</button><button class="dev-chip" onclick="pickManualIcon(this,'🌐')">🌐</button><button class="dev-chip" onclick="pickManualIcon(this,'🔑')">🔑</button><button class="dev-chip" onclick="pickManualIcon(this,'⚡')">⚡</button><button class="dev-chip" onclick="pickManualIcon(this,'🔧')">🔧</button></div><input type="hidden" id="mm-icon" value="💻"/></div>
+<div class="fg-r fg-f"><label>خطوات الحل *</label><div class="steps-list" id="stepsList"></div><button class="btn btn-g btn-sm" onclick="addStep()" style="margin-top:4px"><i class="fas fa-plus"></i>إضافة خطوة</button></div>
+</div><div class="f-acts"><button class="btn btn-g" onclick="closeM('ovAddManual')">إلغاء</button><button class="btn btn-p" onclick="subManual()"><i class="fas fa-save"></i>حفظ</button></div>
+</div></div>
+<div class="ov" id="ovAttach"><div class="modal" style="max-width:460px"><div class="modal-h"><h3><i class="fas fa-paperclip"></i>رفع مرفق</h3><button class="modal-x" onclick="closeM('ovAttach')"><i class="fas fa-times"></i></button></div>
+<p style="font-size:12px;color:var(--sl);margin-bottom:14px">يمكنك رفع صورة للمشكلة (الحد الأقصى 3MB)</p>
+<div class="upload-zone"><input type="file" id="attachFile" accept="image/*,video/mp4" onchange="handleFileSelect(this)"/><div class="uz-ic">📎</div><div class="uz-tx">اضغط لاختيار ملف</div></div>
+<div id="attachPreviewArea" style="margin-top:10px"></div>
+<div class="f-acts"><button class="btn btn-g" onclick="closeM('ovAttach')">إلغاء</button><button class="btn btn-p" id="uploadBtn" onclick="submitAttach()" disabled><i class="fas fa-cloud-upload-alt"></i>رفع</button></div>
+</div></div>
+<div class="ov" id="ovSendTech"><div class="modal" style="max-width:460px"><div class="modal-h"><h3><i class="fas fa-wrench" style="color:var(--am)"></i>تسليم الجهاز للفني</h3><button class="modal-x" onclick="closeM('ovSendTech')"><i class="fas fa-times"></i></button></div>
+<input type="hidden" id="st-devid"/>
+<div style="background:var(--am-l);border:1px solid #fde68a;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px;font-size:11px;color:#92400e">⚠️ بعد التسليم، الفني سيتولى الصيانة ويسجل النتيجة من حسابه</div>
+<div class="fg-r" style="margin-bottom:12px"><label>اختر الفني *</label><select id="st-tech"></select></div>
+<div class="fg-r" style="margin-bottom:12px"><label>ملاحظات للفني</label><textarea id="st-notes" rows="3" placeholder="المشكلة التي أبلغ عنها الموظف..."></textarea></div>
+<div class="f-acts"><button class="btn btn-g" onclick="closeM('ovSendTech')">إلغاء</button><button class="btn btn-w" onclick="subSendTech()"><i class="fas fa-share"></i>تسليم للفني</button></div>
+</div></div>
+<div class="ov" id="ovReceiveBack"><div class="modal" style="max-width:480px"><div class="modal-h"><h3><i class="fas fa-box-open" style="color:var(--pu)"></i>استلام الجهاز من الفني</h3><button class="modal-x" onclick="closeM('ovReceiveBack')"><i class="fas fa-times"></i></button></div>
+<input type="hidden" id="rb-devid"/>
+<div id="rb-techResult" style="border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;font-size:11px;border:1px solid var(--border)"></div>
+<div class="fg-r" style="margin-bottom:12px"><label>حالة الجهاز بعد الاستلام من الفني</label><textarea id="rb-itNotes" rows="2" placeholder="ملاحظات موظف IT بعد الاستلام..."></textarea></div>
+<div class="f-acts"><button class="btn btn-g" onclick="closeM('ovReceiveBack')">إلغاء</button><button class="btn btn-s" onclick="subReceiveBack()"><i class="fas fa-check-double"></i>تأكيد الاستلام من الفني</button></div>
+</div></div>
+<div class="ov" id="ovFinalDeliver"><div class="modal" style="max-width:460px"><div class="modal-h"><h3><i class="fas fa-handshake" style="color:var(--gr-d)"></i>تسليم نهائي للموظف</h3><button class="modal-x" onclick="closeM('ovFinalDeliver')"><i class="fas fa-times"></i></button></div>
+<input type="hidden" id="fd-devid"/>
+<div id="fd-summary" style="border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;font-size:11px;background:var(--bg2);border:1px solid var(--border)"></div>
+<div class="fg-r" style="margin-bottom:12px"><label>حالة الجهاز عند التسليم للموظف</label><select id="fd-condition"><option value="تم الإصلاح الكامل">✅ تم الإصلاح الكامل</option><option value="إصلاح جزئي">⚠️ إصلاح جزئي</option><option value="لم يُصلح — جهاز بديل">🔄 لم يُصلح — جهاز بديل</option><option value="لم يُصلح — للاستبدال">❌ لم يُصلح — للاستبدال</option></select></div>
+<div class="fg-r"><label>ملاحظات للموظف</label><textarea id="fd-notes" rows="2" placeholder="أي تعليمات أو معلومات للموظف..."></textarea></div>
+<div class="f-acts"><button class="btn btn-g" onclick="closeM('ovFinalDeliver')">إلغاء</button><button class="btn btn-s" onclick="subFinalDeliver()"><i class="fas fa-check-circle"></i>تأكيد التسليم وإغلاق البلاغ</button></div>
+</div></div>
+
+<div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js?v=2"></script>
+<script src="js/ui-tickets.js"></script>
+<script src="js/ui-users.js"></script>
+<script src="js/ui-devices.js"></script>
+<script src="js/ui-internet.js"></script>
+<script src="js/ui-notifications.js"></script>
+<script src="js/ui-guidelines.js"></script>
+<script src="js/ui-manual.js"></script>
+<script src="js/ui-ai.js"></script>
+<script src="js/ui-dashboard.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

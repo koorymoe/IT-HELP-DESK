@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ملصق الدعم الفني - QR</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,Arial,sans-serif}
+  body{background:#0b1340;padding:20px}
+  .wrap{display:flex;gap:0;justify-content:center;align-items:center;position:relative;max-width:1100px;margin:0 auto}
+  .cut{position:absolute;top:0;bottom:0;left:50%;border-left:2px dashed #3a4a8a;display:flex;align-items:center;justify-content:center}
+  .cut span{background:#0b1340;color:#9fb4ff;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid #3a4a8a;white-space:nowrap}
+  .card{flex:1;background:linear-gradient(160deg,#0b1340 0%,#1b2a6b 60%,#2a3f9e 100%);padding:30px;color:#fff;text-align:center;border:2px solid #d4af37;border-radius:4px}
+  .top{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:14px;margin-bottom:18px}
+  .avail{background:rgba(255,255,255,.06);border:1px solid #3a4a8a;color:#9fb4ff;font-size:12px;padding:6px 14px;border-radius:20px}
+  .avail i{color:#10b981;margin-left:6px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .logo{width:40px;height:40px;border-radius:10px;background:#d4af37;color:#1b2a6b;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .brand .txt{text-align:right}
+  .brand .txt h3{font-size:16px;font-weight:800;margin:0}
+  .brand .txt p{font-size:10px;color:#c4d0ff;margin:2px 0 0}
+  .sub{font-size:13px;color:#c4d0ff;margin-bottom:8px}
+  h1{font-size:30px;font-weight:900;line-height:1.5;margin-bottom:6px}
+  h1 span{color:#d4af37}
+  .sub2{font-size:13px;color:#c4d0ff;margin-bottom:20px}
+  .qr-box{background:#fff;border:3px solid #d4af37;border-radius:16px;padding:14px;display:inline-block;margin-bottom:14px}
+  .qr-box img{display:block;width:240px;height:240px}
+  .scan-btn{display:inline-block;background:rgba(212,175,55,.15);border:1px solid #d4af37;color:#d4af37;font-size:13px;font-weight:700;padding:8px 20px;border-radius:20px;margin-bottom:22px}
+  .steps{display:flex;gap:10px}
+  .step{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 8px}
+  .step .num{width:26px;height:26px;border-radius:50%;background:#d4af37;color:#1b2a6b;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+  .step .ttl{font-weight:800;font-size:13px;margin-bottom:4px}
+  .step .desc{font-size:10px;color:#c4d0ff;line-height:1.4}
+  .print-note{text-align:center;color:#d4af37;font-weight:800;font-size:13px;margin:16px 0;background:#1b2a6b;display:inline-block;padding:8px 20px;border-radius:8px;border:1px solid #d4af37}
+  .print-wrap{text-align:center}
+  @media print{.print-note,.cut{display:none}body{padding:0}}
+</style>
+</head>
+<body>
+  <div class="print-wrap"><span class="print-note">🖨️ طباعة — ورقتين A5 جنب بعض</span></div>
+  <div class="wrap">
+    <div class="cut"><span>✂ اقص من هنا</span></div>
+    <div class="card">
+      <div class="top">
+        <span class="avail"><i class="fas fa-circle"></i>● متاح الآن</span>
+        <div class="brand">
+          <div class="txt"><h3>IT Help Desk</h3><p>مكتب الدعم التقني</p></div>
+          <div class="logo">🛠️</div>
+        </div>
+      </div>
+      <div class="sub">نظام متابعة طلبات الدعم الفني</div>
+      <h1>مكتب <span>الدعم</span><br>التقني</h1>
+      <div class="sub2">امسح الكود للدخول المباشر إلى النظام</div>
+      <div class="qr-box"><img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fkoorymoe.github.io%2FIT-HELP-DESK%2F" alt="QR"></div>
+      <div class="scan-btn">📱 امسح بكاميرا الجوال مباشرة</div>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="ttl">افتح الكاميرا</div><div class="desc">افتح تطبيق الكاميرا على جوالك</div></div>
+        <div class="step"><div class="num">2</div><div class="ttl">وجّه الكود</div><div class="desc">صوّب الكاميرا نحو الكود أعلاه</div></div>
+        <div class="step"><div class="num">3</div><div class="ttl">ادخل النظام</div><div class="desc">اضغط على الرابط وابدأ فوراً</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="top">
+        <span class="avail"><i class="fas fa-circle"></i>● متاح الآن</span>
+        <div class="brand">
+          <div class="txt"><h3>IT Help Desk</h3><p>مكتب الدعم التقني</p></div>
+          <div class="logo">🛠️</div>
+        </div>
+      </div>
+      <div class="sub">نظام متابعة طلبات الدعم الفني</div>
+      <h1>مكتب <span>الدعم</span><br>التقني</h1>
+      <div class="sub2">امسح الكود للدخول المباشر إلى النظام</div>
+      <div class="qr-box"><img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fkoorymoe.github.io%2FIT-HELP-DESK%2F" alt="QR"></div>
+      <div class="scan-btn">📱 امسح بكاميرا الجوال مباشرة</div>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div class="ttl">افتح الكاميرا</div><div class="desc">افتح تطبيق الكاميرا على جوالك</div></div>
+        <div class="step"><div class="num">2</div><div class="ttl">وجّه الكود</div><div class="desc">صوّب الكاميرا نحو الكود أعلاه</div></div>
+        <div class="step"><div class="num">3</div><div class="ttl">ادخل النظام</div><div class="desc">اضغط على الرابط وابدأ فوراً</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
